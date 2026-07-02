@@ -1,9 +1,5 @@
 package dev.bristot.cryptoapp.navigation
 
-import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -13,7 +9,6 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import dev.bristot.cryptoapp.navigation.CommonUiNavDisplay.DEFAULT_TRANSITION_DURATION_MILLISECOND
 
 @Composable
 fun NavigationCryptoAppHilt(
