@@ -1,2 +1,8 @@
 # CryptoApp
-Android project using the Coinpaprika API to explore cryptocurrency data.
+
+Read the documentation in:
+
+- [Português (Brasil)](README.pt-BR.md)
+- [English](README.en.md)
+
+This file is the entry point for the localized documentation.
