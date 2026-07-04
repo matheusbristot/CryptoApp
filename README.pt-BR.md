@@ -14,7 +14,8 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`.
 - `domain`: entidades e contratos de repositório.
 - `presentation`: ViewModels, estados, controllers e componentes Compose.
 - `ui`: tema, cores e widgets reutilizáveis.
-- A navegação é organizada no pacote `navigation` e a injeção de dependências é feita com Hilt, `@HiltAndroidApp` e módulos `*Module`.
+- `navigation`: módulo Android Library com o contrato, o host de navegação compartilhado e o wrapper injetável `NavigationEntryProviders`.
+- A injeção de dependências principal permanece no `app`, com Hilt, `@HiltAndroidApp` e módulos `*Module`, enquanto o módulo `navigation` participa apenas do agrupamento dos providers de navegação.
 
 ## Bibliotecas
 ### Google / AndroidX
