@@ -31,3 +31,7 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Local generated files
+.kotlin/
+.DS_Store

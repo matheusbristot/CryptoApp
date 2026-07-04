@@ -56,19 +56,15 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.androidx.navigation3.ui)
-
-    // Libraries for Crypto
+    implementation(project(":navigation"))
     implementation(libs.squareup.retrofit.retrofit2)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.squareup.retrofit.converter)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.hilt)
-    implementation(libs.hilt.navigation)
+    implementation(libs.hilt.viewmodel)
     ksp(libs.hilt.compiler)
 
 
