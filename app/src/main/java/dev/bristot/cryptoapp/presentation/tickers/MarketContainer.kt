@@ -38,6 +38,9 @@ import dev.bristot.cryptoapp.presentation.market_review.MarketReviewController
 import dev.bristot.cryptoapp.presentation.market_review.MarketReviewComponent
 import dev.bristot.cryptoapp.presentation.market_review.MarketStats
 import dev.bristot.cryptoapp.presentation.market_review.MarketViewState
+import dev.bristot.cryptoapp.presentation.recents.RECENT_TICKERS_PREVIEW_LIMIT
+import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
+import dev.bristot.cryptoapp.presentation.recents.RecentTickersSection
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonState
 import dev.bristot.cryptoapp.ui.widgets.floating_button.MoveToFirstTileFloatingButton
@@ -53,16 +56,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun MarketContainer(
     tickersController: TickersController,
+    recentTickersController: RecentTickersController,
     floatingButtonController: FloatingButtonController,
     marketReviewController: MarketReviewController,
     sortController: SortController,
-    onSelectTicker: (id: String, name: String) -> Unit,
+    onOpenRecentTickers: () -> Unit,
+    onSelectTicker: (Ticker) -> Unit,
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val textColors = rememberAppTextColors(isDarkMode)
     val floatingState by floatingButtonController.state.collectAsStateWithLifecycle()
     val marketReviewState by marketReviewController.state.collectAsStateWithLifecycle()
     val tickersState by tickersController.state.collectAsStateWithLifecycle()
+    val recentTickersState by recentTickersController.state.collectAsStateWithLifecycle()
     val sortState by sortController.state.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val indexes = rememberSaveable(floatingState.listState) {
@@ -78,7 +84,7 @@ fun MarketContainer(
     }
 
     val contentData = remember(
-        tickersState, marketReviewState
+        tickersState, marketReviewState, recentTickersState
     ) {
 
         var tickers = emptyList<Ticker>()
@@ -86,16 +92,23 @@ fun MarketContainer(
             tickers = (tickersState as TickersState.Success).tickers
         }
 
+        val recentTickers = recentTickersState.tickers.take(RECENT_TICKERS_PREVIEW_LIMIT)
+        val recentTickerIds = recentTickers.map { ticker -> ticker.id }.toSet()
+        val listedTickers = tickers.filterNot { ticker -> ticker.id in recentTickerIds }
+
         var reviews = emptyList<MarketStats>()
         if ((marketReviewState as? MarketViewState.MarketReviewData)?.data != null) {
             reviews = (marketReviewState as MarketViewState.MarketReviewData).data
         }
 
-        if (tickers.isEmpty() && reviews.isEmpty()) {
+        if (tickers.isEmpty() && reviews.isEmpty() && recentTickers.isEmpty()) {
             MarketContainerData.NoContent
         } else {
             MarketContainerData.HasContent(
-                tickersData = tickers, marketReviewData = reviews
+                tickersData = listedTickers,
+                recentTickersData = recentTickers,
+                marketReviewData = reviews,
+                isTickersLoading = tickersState is TickersState.Initial || tickersState is TickersState.Loading,
             )
         }
     }
@@ -179,6 +192,7 @@ fun MarketContainer(
                     contentData,
                     isDarkMode,
                     textColors,
+                    onOpenRecentTickers,
                     onSelectTicker
                 )
             }
@@ -195,7 +209,8 @@ private fun Content(
     contentData: MarketContainerData.HasContent,
     isDarkMode: Boolean,
     textColors: AppTextColors,
-    onSelectCoin: (id: String, name: String) -> Unit
+    onOpenRecentTickers: () -> Unit,
+    onSelectTicker: (Ticker) -> Unit
 ) {
 
     LazyColumn(
@@ -218,11 +233,22 @@ private fun Content(
                         secondaryTextColor = textColors.secondary,
                         stats = contentData.marketReviewData,
                     )
-                    if (contentData.tickersData.isNotEmpty()) Spacer(
+                    if (contentData.recentTickersData.isNotEmpty() || contentData.tickersData.isNotEmpty()) Spacer(
                         modifier = Modifier.height(
                             24.dp
                         )
                     )
+                }
+
+                MarketContainerData.HasContent.ContentType.RECENT_TICKERS -> {
+                    RecentTickersSection(
+                        tickers = contentData.recentTickersData,
+                        isDarkMode = isDarkMode,
+                        textColors = textColors,
+                        onTitleClick = onOpenRecentTickers,
+                        onTickerClick = onSelectTicker,
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
                 MarketContainerData.HasContent.ContentType.TICKERS_LOADING -> {
@@ -237,12 +263,13 @@ private fun Content(
                 }
 
                 MarketContainerData.HasContent.ContentType.TICKER_TILE -> {
+                    val ticker = contentData.extractTickerByIndex(index)
                     TickerTile(
                         isDarkMode = isDarkMode,
                         textColor = textColors.primary,
                         secondaryTextColor = textColors.secondary,
-                        ticker = contentData.tickersData[index - 1],
-                        onClick = onSelectCoin,
+                        ticker = ticker,
+                        onClick = { _, _ -> onSelectTicker(ticker) },
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -284,37 +311,58 @@ private fun NoContent(
 @Immutable
 private sealed class MarketContainerData(
     open val tickersData: List<Ticker>,
+    open val recentTickersData: List<Ticker>,
     open val marketReviewData: List<MarketStats>,
+    open val isTickersLoading: Boolean,
 ) {
 
     data class HasContent(
-        override val tickersData: List<Ticker>, override val marketReviewData: List<MarketStats>
-    ) : MarketContainerData(tickersData = tickersData, marketReviewData = marketReviewData) {
+        override val tickersData: List<Ticker>,
+        override val recentTickersData: List<Ticker>,
+        override val marketReviewData: List<MarketStats>,
+        override val isTickersLoading: Boolean,
+    ) : MarketContainerData(
+        tickersData = tickersData,
+        recentTickersData = recentTickersData,
+        marketReviewData = marketReviewData,
+        isTickersLoading = isTickersLoading,
+    ) {
 
         enum class ContentType {
-            HEADER_VIEW, TICKERS_LOADING, TICKER_TILE, UNKNOWN
+            HEADER_VIEW, RECENT_TICKERS, TICKERS_LOADING, TICKER_TILE, UNKNOWN
         }
 
-        val size: Int get() = (if (marketReviewData.isNotEmpty()) 1 else 0) + (if (tickersData.isNotEmpty()) tickersData.size else 1)
-        fun extractType(index: Int): ContentType {
-            val key = extractByIndex(index)
-            return if (key.contains("header")) ContentType.HEADER_VIEW
-            else if (key.contains("loading")) ContentType.TICKERS_LOADING
-            else if (key.contains("tile")) ContentType.TICKER_TILE
-            else ContentType.UNKNOWN
+        private val hasRecentTickers = recentTickersData.isNotEmpty()
+        private val tickerRowsStartIndex = 1 + if (hasRecentTickers) 1 else 0
+        private val tickerRowsCount = if (isTickersLoading) 1 else tickersData.size
+
+        val size: Int = tickerRowsStartIndex + tickerRowsCount
+
+        fun extractType(index: Int): ContentType = when {
+            index == 0 -> ContentType.HEADER_VIEW
+            hasRecentTickers && index == 1 -> ContentType.RECENT_TICKERS
+            isTickersLoading && index == tickerRowsStartIndex -> ContentType.TICKERS_LOADING
+            !isTickersLoading && index in tickerRowsStartIndex until size -> ContentType.TICKER_TILE
+            else -> ContentType.UNKNOWN
         }
 
-        fun extractByIndex(index: Int) = when {
-            index == 0 && marketReviewData.isNotEmpty() || index == 0 && marketReviewData.isEmpty() -> "header-review"
-            index == 1 && tickersData.isEmpty() -> "above-loading"
-            index >= 1 && tickersData.isNotEmpty() -> {
-                "ticker-tile-${tickersData[index - 1].id}"
-            }
-
-            else -> "no-content"
+        fun extractByIndex(index: Int): String = when (extractType(index)) {
+            ContentType.HEADER_VIEW -> "header-review"
+            ContentType.RECENT_TICKERS -> "recent-tickers"
+            ContentType.TICKERS_LOADING -> "above-loading"
+            ContentType.TICKER_TILE -> "ticker-tile-${extractTickerByIndex(index).id}"
+            ContentType.UNKNOWN -> "no-content"
         }
+
+        fun extractTickerByIndex(index: Int): Ticker =
+            tickersData[index - tickerRowsStartIndex]
     }
 
     object NoContent :
-        MarketContainerData(tickersData = emptyList(), marketReviewData = emptyList())
+        MarketContainerData(
+            tickersData = emptyList(),
+            recentTickersData = emptyList(),
+            marketReviewData = emptyList(),
+            isTickersLoading = false,
+        )
 }

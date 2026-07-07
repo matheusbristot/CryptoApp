@@ -3,10 +3,12 @@ package dev.bristot.cryptoapp.presentation.components
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -23,13 +25,26 @@ import dev.bristot.cryptoapp.presentation.coin_list.widgets.CoinListLoading
 import dev.bristot.cryptoapp.presentation.coin_list.widgets.CoinListTile
 import dev.bristot.cryptoapp.presentation.market_review.MarketReviewComponent
 import dev.bristot.cryptoapp.presentation.market_review.MarketStats
+import dev.bristot.cryptoapp.presentation.market_review.MarketReviewController
+import dev.bristot.cryptoapp.presentation.market_review.MarketViewState
+import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
+import dev.bristot.cryptoapp.presentation.recents.RecentTickersState
 import dev.bristot.cryptoapp.presentation.ticker.TickerContainer
 import dev.bristot.cryptoapp.presentation.ticker.TickerController
 import dev.bristot.cryptoapp.presentation.ticker.TickerState
+import dev.bristot.cryptoapp.presentation.tickers.MarketContainer
+import dev.bristot.cryptoapp.presentation.tickers.TickersController
+import dev.bristot.cryptoapp.presentation.tickers.TickersState
 import dev.bristot.cryptoapp.presentation.tickers.TickerTile
 import dev.bristot.cryptoapp.ui.theme.CryptoAppTheme
+import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
+import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonState
+import dev.bristot.cryptoapp.ui.widgets.floating_button.ListState
+import dev.bristot.cryptoapp.ui.widgets.floating_button.ScrollStateSavable
 import dev.bristot.cryptoapp.ui.widgets.sort.DropdownMenuSort
+import dev.bristot.cryptoapp.ui.widgets.sort.SortController
 import dev.bristot.cryptoapp.ui.widgets.sort.SortOrder
+import dev.bristot.cryptoapp.ui.widgets.sort.SortState
 import dev.bristot.cryptoapp.ui.widgets.sort.SortType
 import dev.bristot.cryptoapp.ui.widgets.floating_button.MoveToFirstTileFloatingButton
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -234,11 +249,139 @@ class ComposeComponentsTest {
         assertEquals(SortOrder.DESCENDING, receivedOrder)
     }
 
-    private fun ticker() = Ticker(
-        id = "btc",
-        name = "Bitcoin",
-        symbol = "BTC",
-        rank = 1,
+    @Test
+    fun marketContainer_showsRecentSectionAndFiltersOnlyDisplayedRecentTickers() {
+        val bitcoin = ticker(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1)
+        val ethereum = ticker(id = "eth", name = "Ethereum", symbol = "ETH", rank = 2)
+        val solana = ticker(id = "sol", name = "Solana", symbol = "SOL", rank = 3)
+        val cardano = ticker(id = "ada", name = "Cardano", symbol = "ADA", rank = 4)
+        val xrp = ticker(id = "xrp", name = "XRP", symbol = "XRP", rank = 5)
+        var openRecentsClicked = false
+        var selectedTicker: Ticker? = null
+
+        composeRule.setContent {
+            CryptoAppTheme(darkTheme = false, dynamicColor = false) {
+                MarketContainer(
+                    tickersController = TickersController(
+                        state = MutableStateFlow(
+                            TickersState.Success(
+                                tickers = listOf(bitcoin, ethereum, solana, cardano, xrp),
+                            )
+                        ),
+                        sortBy = { _, _ -> },
+                    ),
+                    recentTickersController = RecentTickersController(
+                        state = MutableStateFlow(
+                            RecentTickersState(
+                                tickers = listOf(bitcoin, ethereum, solana, cardano),
+                            )
+                        ),
+                        addRecentTicker = { },
+                    ),
+                    floatingButtonController = FloatingButtonController(
+                        state = MutableStateFlow(
+                            ScrollStateSavable(
+                                floatingButtonState = FloatingButtonState.Hidden,
+                                listState = ListState(),
+                            )
+                        ),
+                        onHandleVisibility = { },
+                        onSaveScroll = { _, _ -> },
+                    ),
+                    marketReviewController = MarketReviewController(
+                        state = MutableStateFlow(MarketViewState.MarketReviewData(emptyList())),
+                    ),
+                    sortController = SortController(
+                        state = MutableStateFlow(
+                            SortState(
+                                type = SortType.RANK,
+                                order = SortOrder.ASCENDING,
+                            )
+                        ),
+                        changeType = { },
+                        changeOrder = { },
+                    ),
+                    onOpenRecentTickers = {
+                        openRecentsClicked = true
+                    },
+                    onSelectTicker = { ticker ->
+                        selectedTicker = ticker
+                    },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("recent_tickers_section").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("ticker_tile_btc").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("ticker_tile_eth").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("ticker_tile_sol").assertCountEquals(1)
+        composeRule.onAllNodesWithTag("ticker_tile_ada").assertCountEquals(1)
+
+        composeRule.onNodeWithTag("recent_tickers_title").assertHasClickAction().performClick()
+        composeRule.onNodeWithTag("ticker_tile_btc").performClick()
+
+        assertEquals(true, openRecentsClicked)
+        assertEquals(bitcoin, selectedTicker)
+    }
+
+    @Test
+    fun marketContainer_doesNotShowRecentSectionWhenThereAreNoRecentTickers() {
+        val bitcoin = ticker(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1)
+
+        composeRule.setContent {
+            CryptoAppTheme(darkTheme = false, dynamicColor = false) {
+                MarketContainer(
+                    tickersController = TickersController(
+                        state = MutableStateFlow(TickersState.Success(tickers = listOf(bitcoin))),
+                        sortBy = { _, _ -> },
+                    ),
+                    recentTickersController = RecentTickersController(
+                        state = MutableStateFlow(RecentTickersState()),
+                        addRecentTicker = { },
+                    ),
+                    floatingButtonController = FloatingButtonController(
+                        state = MutableStateFlow(
+                            ScrollStateSavable(
+                                floatingButtonState = FloatingButtonState.Hidden,
+                                listState = ListState(),
+                            )
+                        ),
+                        onHandleVisibility = { },
+                        onSaveScroll = { _, _ -> },
+                    ),
+                    marketReviewController = MarketReviewController(
+                        state = MutableStateFlow(MarketViewState.MarketReviewData(emptyList())),
+                    ),
+                    sortController = SortController(
+                        state = MutableStateFlow(
+                            SortState(
+                                type = SortType.RANK,
+                                order = SortOrder.ASCENDING,
+                            )
+                        ),
+                        changeType = { },
+                        changeOrder = { },
+                    ),
+                    onOpenRecentTickers = { },
+                    onSelectTicker = { },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("recent_tickers_section").assertDoesNotExist()
+        composeRule.onNodeWithTag("ticker_tile_btc").assertIsDisplayed()
+    }
+
+    private fun ticker(
+        id: String = "btc",
+        name: String = "Bitcoin",
+        symbol: String = "BTC",
+        rank: Int = 1,
+    ) = Ticker(
+        id = id,
+        name = name,
+        symbol = symbol,
+        rank = rank,
         prices = mapOf(
             CurrencySymbol.BRL to Currency(
                 price = 71_420.0,

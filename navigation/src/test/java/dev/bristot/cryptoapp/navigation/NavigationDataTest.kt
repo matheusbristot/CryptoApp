@@ -29,4 +29,17 @@ class NavigationDataTest {
         assertEquals(listOf(CryptoAppDestination.Tickers), navigationData.backStack.toList())
         assertFalse(navigationData.hasStack())
     }
+
+    @Test
+    fun `forward supports recent tickers destination`() {
+        val navigationData = NavigationData(CryptoAppDestination.Tickers)
+
+        navigationData.forward(CryptoAppDestination.RecentTickers)
+
+        assertTrue(navigationData.hasStack())
+        assertEquals(
+            listOf(CryptoAppDestination.Tickers, CryptoAppDestination.RecentTickers),
+            navigationData.backStack.toList(),
+        )
+    }
 }

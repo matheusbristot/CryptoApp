@@ -9,5 +9,8 @@ sealed interface CryptoAppDestination : NavKey {
     object Tickers : CryptoAppDestination
 
     @Serializable
+    object RecentTickers : CryptoAppDestination
+
+    @Serializable
     data class TickerDetail(val id: String, val name: String) : CryptoAppDestination
 }

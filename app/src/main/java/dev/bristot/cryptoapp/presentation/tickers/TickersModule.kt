@@ -12,6 +12,8 @@ import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
 import dev.bristot.cryptoapp.presentation.market_review.MarketReviewController
 import dev.bristot.cryptoapp.presentation.market_review.MarketReviewViewModel
+import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
+import dev.bristot.cryptoapp.presentation.recents.RecentTickersViewModel
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonManager
 import dev.bristot.cryptoapp.ui.widgets.sort.SortController
@@ -29,10 +31,17 @@ object TickersModule {
             val floatingButtonManager = hiltViewModel<FloatingButtonManager>()
             val marketReviewViewModel = hiltViewModel<MarketReviewViewModel>()
             val sortViewModel = hiltViewModel<SortViewModel>()
+            val recentTickersViewModel = hiltViewModel<RecentTickersViewModel>()
             val tickersController = remember(tickersViewModel) {
                 TickersController(
                     state = tickersViewModel.state,
                     sortBy = tickersViewModel::sortBy,
+                )
+            }
+            val recentTickersController = remember(recentTickersViewModel) {
+                RecentTickersController(
+                    state = recentTickersViewModel.state,
+                    addRecentTicker = recentTickersViewModel::addRecentTicker,
                 )
             }
             val sortController = remember(sortViewModel) {
@@ -49,6 +58,7 @@ object TickersModule {
             }
             MarketContainer(
                 tickersController = tickersController,
+                recentTickersController = recentTickersController,
                 floatingButtonController = FloatingButtonController(
                     state = floatingButtonManager.state,
                     onHandleVisibility = floatingButtonManager::onHandleVisibility,
@@ -56,21 +66,18 @@ object TickersModule {
                 ),
                 marketReviewController = marketReviewController,
                 sortController = sortController,
-                onSelectTicker = onSelect(navigationData)
-            )
-        }
-    }
-
-    private fun onSelect(navigationData: NavigationData): (id: String, name: String) -> Unit {
-        fun cryptoAppDestinationTickerDetail(
-            id: String, name: String
-        ): CryptoAppDestination = CryptoAppDestination.TickerDetail(id, name)
-
-        return { id, name ->
-            navigationData.forward(
-                newDestination = cryptoAppDestinationTickerDetail(
-                    id = id, name = name
-                )
+                onOpenRecentTickers = {
+                    navigationData.forward(CryptoAppDestination.RecentTickers)
+                },
+                onSelectTicker = { ticker ->
+                    recentTickersController.addRecentTicker(ticker)
+                    navigationData.forward(
+                        CryptoAppDestination.TickerDetail(
+                            id = ticker.id,
+                            name = ticker.name,
+                        )
+                    )
+                },
             )
         }
     }
