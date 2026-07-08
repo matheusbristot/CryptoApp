@@ -21,12 +21,10 @@ import dev.bristot.cryptoapp.domain.entity.CurrencySymbol
 import dev.bristot.cryptoapp.domain.entity.MarketCap
 import dev.bristot.cryptoapp.domain.entity.PercentChangeInterval
 import dev.bristot.cryptoapp.domain.entity.Ticker
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewController
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketViewState
 import dev.bristot.cryptoapp.presentation.coin_list.widgets.CoinListLoading
 import dev.bristot.cryptoapp.presentation.coin_list.widgets.CoinListTile
-import dev.bristot.cryptoapp.presentation.market_review.MarketReviewComponent
-import dev.bristot.cryptoapp.presentation.market_review.MarketStats
-import dev.bristot.cryptoapp.presentation.market_review.MarketReviewController
-import dev.bristot.cryptoapp.presentation.market_review.MarketViewState
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersState
 import dev.bristot.cryptoapp.presentation.ticker.TickerContainer
@@ -119,41 +117,6 @@ class ComposeComponentsTest {
 
         assertEquals("btc", clickedId)
         assertEquals("Bitcoin", clickedName)
-    }
-
-    @Test
-    fun marketReviewComponent_displaysMarketStats() {
-        composeRule.setContent {
-            CryptoAppTheme(darkTheme = false, dynamicColor = false) {
-                MarketReviewComponent(
-                    isDarkMode = false,
-                    textColor = MaterialTheme.colorScheme.onSurface,
-                    secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    stats = listOf(
-                        MarketStats(
-                            label = "Total Market Cap",
-                            value = "\$1,5M",
-                            change = "+1.25%",
-                            isPositive = true,
-                        ),
-                        MarketStats(
-                            label = "24h Volume",
-                            value = "\$250000",
-                            change = "-0.75%",
-                            isPositive = false,
-                        ),
-                    ),
-                )
-            }
-        }
-
-        composeRule.onNodeWithTag("market_review_component").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_stat_total_market_cap").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_stat_24h_volume").assertIsDisplayed()
-        composeRule.onNodeWithText("Global Market").assertIsDisplayed()
-        composeRule.onNodeWithText("Live").assertIsDisplayed()
-        composeRule.onNodeWithText("\$1,5M").assertIsDisplayed()
-        composeRule.onNodeWithText("\$250000").assertIsDisplayed()
     }
 
     @Test

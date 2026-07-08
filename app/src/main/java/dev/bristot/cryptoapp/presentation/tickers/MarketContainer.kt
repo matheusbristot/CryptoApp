@@ -34,10 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import dev.bristot.cryptoapp.domain.entity.Ticker
-import dev.bristot.cryptoapp.presentation.market_review.MarketReviewController
-import dev.bristot.cryptoapp.presentation.market_review.MarketReviewComponent
-import dev.bristot.cryptoapp.presentation.market_review.MarketStats
-import dev.bristot.cryptoapp.presentation.market_review.MarketViewState
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewController
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewComponent
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketStats
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketViewState
 import dev.bristot.cryptoapp.presentation.recents.RECENT_TICKERS_PREVIEW_LIMIT
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersSection

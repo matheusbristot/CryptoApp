@@ -10,8 +10,8 @@ import dagger.multibindings.IntoSet
 import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
-import dev.bristot.cryptoapp.presentation.market_review.MarketReviewController
-import dev.bristot.cryptoapp.presentation.market_review.MarketReviewViewModel
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewController
+import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewViewModel
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersViewModel
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
@@ -22,10 +23,17 @@ android {
     kotlin {
         jvmToolchain(17)
     }
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
     api(libs.kotlinx.coroutines.core)
+    api(platform(libs.androidx.compose.bom))
+    api(libs.androidx.compose.ui)
+    api(libs.androidx.compose.ui.graphics)
+    api(libs.androidx.compose.material3)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)

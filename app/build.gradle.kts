@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(project(":common"))
     implementation(project(":navigation"))
+    implementation(project(":feature:market-review"))
     implementation(libs.squareup.retrofit.retrofit2)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.squareup.retrofit.converter)
@@ -71,6 +72,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(project(":testing"))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

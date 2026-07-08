@@ -23,3 +23,5 @@ rootProject.name = "CryptoApp"
 include(":app")
 include(":common")
 include(":navigation")
+include(":feature:market-review")
+include(":testing")

@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.bristot.cryptoapp.data.api.global.GlobalRoutes
 import dev.bristot.cryptoapp.data.api.tickers.TickersRoutes
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
@@ -42,8 +41,4 @@ object APIModule {
     @Provides
     @Singleton
     fun provideTickersRoute(client: Retrofit): TickersRoutes = client.create<TickersRoutes>()
-
-    @Provides
-    @Singleton
-    fun provideGlobalRoute(client: Retrofit): GlobalRoutes = client.create<GlobalRoutes>()
 }

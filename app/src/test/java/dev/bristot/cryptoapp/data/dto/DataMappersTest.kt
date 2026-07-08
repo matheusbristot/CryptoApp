@@ -1,14 +1,12 @@
 package dev.bristot.cryptoapp.data.dto
 
 import dev.bristot.cryptoapp.data.model.CoinResponse
-import dev.bristot.cryptoapp.data.model.MarketReviewResponse
 import dev.bristot.cryptoapp.data.model.TickerResponse
 import dev.bristot.cryptoapp.data.model.CurrencyResponse
 import dev.bristot.cryptoapp.domain.entity.AllTimeHigh
 import dev.bristot.cryptoapp.domain.entity.Currency
 import dev.bristot.cryptoapp.domain.entity.CurrencySymbol
 import dev.bristot.cryptoapp.domain.entity.MarketCap
-import dev.bristot.cryptoapp.domain.entity.MarketReview
 import dev.bristot.cryptoapp.domain.entity.PercentChangeInterval
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -32,40 +30,6 @@ class DataMappersTest {
         assertEquals("BTC", coin.symbol)
         assertEquals(1, coin.rank)
         assertEquals(true, coin.isActive)
-    }
-
-    @Test
-    fun toMarketReview_mapsMarketReviewResponseToDomain() {
-        val marketReview = MarketReviewResponse(
-            marketCapUsd = 1_000_000L,
-            volume24hUsd = 250_000L,
-            bitcoinDominancePercentage = 54.3,
-            cryptocurrenciesNumber = 10_500,
-            marketCapAthValue = 2_000_000L,
-            marketCapAthDate = "2026-01-01",
-            volume24hAthValue = 500_000L,
-            volume24hAthDate = "2026-02-01",
-            marketCapChange24h = 1.25,
-            volume24hChange24h = -0.75,
-            lastUpdated = 1_725_000_000L,
-        ).toMarketReview()
-
-        assertEquals(
-            MarketReview(
-                marketCapUsd = 1_000_000L,
-                volume24hUsd = 250_000L,
-                bitcoinDominancePercentage = 54.3,
-                cryptocurrenciesNumber = 10_500,
-                marketCapAthValue = 2_000_000L,
-                marketCapAthDate = "2026-01-01",
-                volume24hAthValue = 500_000L,
-                volume24hAthDate = "2026-02-01",
-                marketCapChange24h = 1.25,
-                volume24hChange24h = -0.75,
-                lastUpdated = 1_725_000_000L,
-            ),
-            marketReview,
-        )
     }
 
     @Test

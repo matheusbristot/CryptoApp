@@ -1,7 +1,5 @@
 package dev.bristot.cryptoapp.presentation.controllers
 
-import dev.bristot.cryptoapp.presentation.market_review.MarketReviewController
-import dev.bristot.cryptoapp.presentation.market_review.MarketViewState
 import dev.bristot.cryptoapp.presentation.tickers.TickersController
 import dev.bristot.cryptoapp.presentation.tickers.TickersState
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
@@ -38,15 +36,6 @@ class ControllersTest {
         assertSame(state, controller.state)
         assertEquals(SortType.NAME, receivedSortType)
         assertEquals(SortOrder.DESCENDING, receivedSortOrder)
-    }
-
-    @Test
-    fun marketReviewController_keepsStateReference() {
-        val state = MutableStateFlow<MarketViewState>(MarketViewState.Initial)
-
-        val controller = MarketReviewController(state = state)
-
-        assertSame(state, controller.state)
     }
 
     @Test

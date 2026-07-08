@@ -9,14 +9,18 @@ Leia a documentação em:
 - Aplicativo Android em Kotlin que consome a API do Coinpaprika para exibir dados de criptomoedas.
 
 ## Arquitetura
-O projeto adota MVVM com organização em `data`, `domain` e `presentation`.
-- `data`: integração com API, DTOs, data sources, repositories e mappers.
-- `domain`: entidades e contratos de repositório.
-- `presentation`: ViewModels, estados, controllers e componentes Compose.
-- `ui`: tema, cores e widgets reutilizáveis.
-- `common`: módulo Android Library para contratos comuns de logger e dispatchers de coroutines; as implementações default ficam internas ao módulo e são expostas via Hilt apenas pelos contratos.
+O projeto adota MVVM com organização em `data`, `domain` e `presentation`, distribuída entre o app e módulos Android Library.
+- `app`: application Android, host da navegação, configuração base do Retrofit/Coinpaprika e features que ainda não foram extraídas.
+- `:feature:market-review`: feature extraída para o market overview global da Coinpaprika (`GET global`), com API route, DTO/model, datasource, repository, contrato de domínio, ViewModel, estado, controller e UI Compose próprios.
+- `common`: módulo Android Library para contratos comuns de logger e dispatchers de coroutines, tema/cores compartilhados e bindings Hilt internos.
 - `navigation`: módulo Android Library com o contrato, o host de navegação compartilhado e o wrapper injetável `NavigationEntryProviders`.
-- A injeção de dependências principal permanece no `app`, com Hilt e `@HiltAndroidApp`; módulos compartilhados como `common` também contribuem bindings Hilt próprios.
+- `:testing`: módulo Android Library usado apenas em `testImplementation` para utilitários compartilhados de teste, como `MainDispatcherRule` e `clearForTest`.
+- A injeção de dependências principal permanece no `app`, com Hilt e `@HiltAndroidApp`; módulos compartilhados e de feature contribuem bindings Hilt próprios.
+
+## Market Review
+- O antigo fluxo `data/global`, `datasource/market_review`, `repository/market_review`, `domain/repository/MarketReviewRepository` e `presentation/market_review` saiu do `:app`.
+- O provider de `GlobalRoutes` agora vive no módulo `:feature:market-review`, reutilizando o `Retrofit` singleton fornecido pelo `:app`.
+- A tela de tickers continua renderizando o market review como header via `MarketContainer`, importando os tipos públicos da feature (`MarketReviewController`, `MarketViewState`, `MarketStats` e `MarketReviewComponent`).
 
 ## Bibliotecas
 ### Google / AndroidX
@@ -37,8 +41,13 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`.
 ## Testes
 - Unitários: `app/src/test`.
 - Unitários do módulo comum: `common/src/test`.
+- Unitários da feature de market review: `feature/market-review/src/test`.
+- Testes instrumentados Compose da feature de market review: `feature/market-review/src/androidTest`.
+- Utilitários compartilhados de teste: `testing/src/main`.
 - Rodar testes unitários do módulo comum: `./gradlew :common:testDebugUnitTest`.
+- Rodar testes unitários da feature de market review: `./gradlew :feature:market-review:testDebugUnitTest`.
 - Instrumentados: `app/src/androidTest`.
 - Rodar testes unitários: `./gradlew :app:testDebugUnitTest`.
 - Rodar testes instrumentados: `./gradlew :app:connectedDebugAndroidTest`.
+- Validar tudo que cobre a migração de market review: `./gradlew :common:testDebugUnitTest :feature:market-review:testDebugUnitTest :app:testDebugUnitTest`.
 - Ao tocar em UI, validar também os testes de Compose em `androidTest`.
