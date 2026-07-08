@@ -14,8 +14,9 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 - `domain`: entities and repository contracts.
 - `presentation`: ViewModels, states, controllers, and Compose components.
 - `ui`: theme, colors, and reusable widgets.
+- `common`: Android Library module for shared logger and coroutine dispatcher contracts; default implementations stay internal to the module and are exposed through Hilt only as contracts.
 - `navigation`: Android Library module with the shared navigation contract, host, and the injectable `NavigationEntryProviders` wrapper.
-- Main dependency injection remains in `app`, with Hilt, `@HiltAndroidApp`, and `*Module` modules, while the `navigation` module only groups navigation providers.
+- Main dependency injection remains in `app`, with Hilt and `@HiltAndroidApp`; shared modules such as `common` also contribute their own Hilt bindings.
 
 ## Libraries
 ### Google / AndroidX
@@ -28,12 +29,15 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 ### Other
 - Retrofit 3 with a Kotlinx Serialization converter.
 - Kotlinx Serialization.
+- Kotlinx Coroutines.
 - kotlinx.coroutines-test.
 - JUnit 4.
 - Compose stability analyzer: `compose.stability.analyzer`.
 
 ## Tests
 - Unit tests: `app/src/test`.
+- Common module unit tests: `common/src/test`.
+- Run common module unit tests: `./gradlew :common:testDebugUnitTest`.
 - Instrumented tests: `app/src/androidTest`.
 - Run unit tests: `./gradlew :app:testDebugUnitTest`.
 - Run instrumented tests: `./gradlew :app:connectedDebugAndroidTest`.
