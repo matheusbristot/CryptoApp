@@ -23,6 +23,7 @@ Defines the possible app routes with a `sealed interface` and `NavKey`.
 
 The current contract includes:
 - `Tickers`
+- `RecentTickers`
 - `TickerDetail`
 
 ### `NavigationData`
@@ -71,6 +72,7 @@ It receives:
 ## Dependency rules
 - The `navigation` module does not know internal feature details.
 - Features depend on the navigation contract, but not on the `app`.
+- `:feature:tickers` registers the `Tickers`, `RecentTickers`, and `TickerDetail` entries without exposing its UI implementation to the application module.
 - The `app` remains the application entry point and only orchestrates the final UI tree.
 
 ## Current organization

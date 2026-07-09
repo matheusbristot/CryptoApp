@@ -23,6 +23,7 @@ Define as rotas possíveis do app com `sealed interface` e `NavKey`.
 
 Hoje o contrato possui:
 - `Tickers`
+- `RecentTickers`
 - `TickerDetail`
 
 ### `NavigationData`
@@ -71,6 +72,7 @@ Ele recebe:
 ## Regras de dependência
 - O módulo `navigation` não conhece detalhes internos das features.
 - As features dependem do contrato de navegação, mas não do `app`.
+- `:feature:tickers` registra as entradas de `Tickers`, `RecentTickers` e `TickerDetail` sem expor sua implementação visual ao módulo de aplicação.
 - O `app` continua como ponto de entrada da aplicação e apenas orquestra a montagem final da árvore de UI.
 
 ## Organização atual
