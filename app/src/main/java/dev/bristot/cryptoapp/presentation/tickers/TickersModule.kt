@@ -7,11 +7,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.multibindings.IntoSet
+import dev.bristot.cryptoapp.feature.market_review.api.MarketOverviewHeaderRegistry
+import dev.bristot.cryptoapp.feature.market_review.api.MarketOverviewRendererIds
 import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewController
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewViewModel
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersViewModel
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
@@ -25,13 +25,17 @@ object TickersModule {
 
     @IntoSet
     @Provides
-    fun provideTickersNavigationData(navigationData: NavigationData): EntryProviderInstaller = {
+    fun provideTickersNavigationData(
+        navigationData: NavigationData,
+        marketOverviewHeaderRegistry: MarketOverviewHeaderRegistry,
+    ): EntryProviderInstaller = {
         entry<CryptoAppDestination.Tickers> {
             val tickersViewModel = hiltViewModel<TickersViewModel>()
             val floatingButtonManager = hiltViewModel<FloatingButtonManager>()
-            val marketReviewViewModel = hiltViewModel<MarketReviewViewModel>()
             val sortViewModel = hiltViewModel<SortViewModel>()
             val recentTickersViewModel = hiltViewModel<RecentTickersViewModel>()
+            val marketReviewHeaderRenderer =
+                marketOverviewHeaderRegistry.required(MarketOverviewRendererIds.MARKET_REVIEW)
             val tickersController = remember(tickersViewModel) {
                 TickersController(
                     state = tickersViewModel.state,
@@ -51,11 +55,6 @@ object TickersModule {
                     changeOrder = sortViewModel::changeOrder,
                 )
             }
-            val marketReviewController = remember(marketReviewViewModel) {
-                MarketReviewController(
-                    state = marketReviewViewModel.state,
-                )
-            }
             MarketContainer(
                 tickersController = tickersController,
                 recentTickersController = recentTickersController,
@@ -64,7 +63,12 @@ object TickersModule {
                     onHandleVisibility = floatingButtonManager::onHandleVisibility,
                     onSaveScroll = floatingButtonManager::onSaveScroll,
                 ),
-                marketReviewController = marketReviewController,
+                marketOverviewHeaderContent = { isDarkMode, textColors ->
+                    marketReviewHeaderRenderer.Render(
+                        isDarkMode = isDarkMode,
+                        textColors = textColors,
+                    )
+                },
                 sortController = sortController,
                 onOpenRecentTickers = {
                     navigationData.forward(CryptoAppDestination.RecentTickers)

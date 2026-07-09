@@ -2,6 +2,7 @@ package dev.bristot.cryptoapp.presentation.components
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
@@ -21,8 +22,6 @@ import dev.bristot.cryptoapp.domain.entity.CurrencySymbol
 import dev.bristot.cryptoapp.domain.entity.MarketCap
 import dev.bristot.cryptoapp.domain.entity.PercentChangeInterval
 import dev.bristot.cryptoapp.domain.entity.Ticker
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewController
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketViewState
 import dev.bristot.cryptoapp.presentation.coin_list.widgets.CoinListLoading
 import dev.bristot.cryptoapp.presentation.coin_list.widgets.CoinListTile
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
@@ -251,9 +250,7 @@ class ComposeComponentsTest {
                         onHandleVisibility = { },
                         onSaveScroll = { _, _ -> },
                     ),
-                    marketReviewController = MarketReviewController(
-                        state = MutableStateFlow(MarketViewState.MarketReviewData(emptyList())),
-                    ),
+                    marketOverviewHeaderContent = { _, _ -> Text("Market overview") },
                     sortController = SortController(
                         state = MutableStateFlow(
                             SortState(
@@ -312,9 +309,7 @@ class ComposeComponentsTest {
                         onHandleVisibility = { },
                         onSaveScroll = { _, _ -> },
                     ),
-                    marketReviewController = MarketReviewController(
-                        state = MutableStateFlow(MarketViewState.MarketReviewData(emptyList())),
-                    ),
+                    marketOverviewHeaderContent = { _, _ -> Text("Market overview") },
                     sortController = SortController(
                         state = MutableStateFlow(
                             SortState(

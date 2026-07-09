@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(project(":common"))
     implementation(project(":navigation"))
+    implementation(project(":feature:market-review-api"))
     implementation(project(":feature:market-review"))
     implementation(libs.squareup.retrofit.retrofit2)
     implementation(libs.kotlinx.serialization.json)

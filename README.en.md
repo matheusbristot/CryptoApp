@@ -11,7 +11,8 @@ Read the documentation in:
 ## Architecture
 The project follows MVVM with organization in `data`, `domain`, and `presentation`, split across the app and Android Library modules.
 - `app`: Android application, navigation host, base Retrofit/Coinpaprika configuration, and features that have not been extracted yet.
-- `:feature:market-review`: extracted feature for Coinpaprika global market overview (`GET global`), with its own API route, DTO/model, datasource, repository, domain contract, ViewModel, state, controller, and Compose UI.
+- `:feature:market-review-api`: public contract for integrating the market overview header into the tickers screen without exposing the feature implementation.
+- `:feature:market-review`: extracted feature for Coinpaprika global market overview (`GET global`), with its own API route, DTO/model, datasource, repository, domain contract, ViewModel, state, and Compose UI.
 - `common`: Android Library module for shared logger and coroutine dispatcher contracts, shared theme/colors, and internal Hilt bindings.
 - `navigation`: Android Library module with the shared navigation contract, host, and the injectable `NavigationEntryProviders` wrapper.
 - `:testing`: Android Library module used only through `testImplementation` for shared test utilities such as `MainDispatcherRule` and `clearForTest`.
@@ -20,7 +21,9 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 ## Market Review
 - The former `data/global`, `datasource/market_review`, `repository/market_review`, `domain/repository/MarketReviewRepository`, and `presentation/market_review` flow was moved out of `:app`.
 - The `GlobalRoutes` provider now lives in `:feature:market-review`, reusing the singleton `Retrofit` provided by `:app`.
-- The tickers screen still renders market review as its header through `MarketContainer`, importing the feature public types (`MarketReviewController`, `MarketViewState`, `MarketStats`, and `MarketReviewComponent`).
+- The tickers screen renders market review through `MarketOverviewHeaderRegistry`, which resolves the renderer registered by the feature with the `MarketOverviewRendererIds.MARKET_REVIEW` key.
+- `:app` depends only on the `:feature:market-review-api` contract; `MarketReviewViewModel`, `MarketViewState`, `MarketStats`, and `MarketReviewComponent` remain encapsulated in `:feature:market-review`.
+- The feature implementation registers `MarketReviewHeaderRenderer` in Hilt using `@IntoMap` and `@MarketOverviewRendererKey`.
 
 ## Libraries
 ### Google / AndroidX
@@ -43,6 +46,7 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 - Common module unit tests: `common/src/test`.
 - Market review feature unit tests: `feature/market-review/src/test`.
 - Market review feature Compose instrumented tests: `feature/market-review/src/androidTest`.
+- Feature integration contracts: `feature/market-review-api/src/main`.
 - Shared test utilities: `testing/src/main`.
 - Run common module unit tests: `./gradlew :common:testDebugUnitTest`.
 - Run market review feature unit tests: `./gradlew :feature:market-review:testDebugUnitTest`.

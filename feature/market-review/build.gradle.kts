@@ -32,6 +32,7 @@ android {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":feature:market-review-api"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

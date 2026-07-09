@@ -34,10 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import dev.bristot.cryptoapp.domain.entity.Ticker
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewController
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketReviewComponent
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketStats
-import dev.bristot.cryptoapp.feature.market_review.presentation.market_review.MarketViewState
 import dev.bristot.cryptoapp.presentation.recents.RECENT_TICKERS_PREVIEW_LIMIT
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersController
 import dev.bristot.cryptoapp.presentation.recents.RecentTickersSection
@@ -48,7 +44,6 @@ import dev.bristot.cryptoapp.ui.widgets.sort.SortController
 import dev.bristot.cryptoapp.ui.theme.AppTextColors
 import dev.bristot.cryptoapp.ui.theme.rememberAppTextColors
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +53,7 @@ fun MarketContainer(
     tickersController: TickersController,
     recentTickersController: RecentTickersController,
     floatingButtonController: FloatingButtonController,
-    marketReviewController: MarketReviewController,
+    marketOverviewHeaderContent: @Composable (isDarkMode: Boolean, textColors: AppTextColors) -> Unit,
     sortController: SortController,
     onOpenRecentTickers: () -> Unit,
     onSelectTicker: (Ticker) -> Unit,
@@ -66,7 +61,6 @@ fun MarketContainer(
     val isDarkMode = isSystemInDarkTheme()
     val textColors = rememberAppTextColors(isDarkMode)
     val floatingState by floatingButtonController.state.collectAsStateWithLifecycle()
-    val marketReviewState by marketReviewController.state.collectAsStateWithLifecycle()
     val tickersState by tickersController.state.collectAsStateWithLifecycle()
     val recentTickersState by recentTickersController.state.collectAsStateWithLifecycle()
     val sortState by sortController.state.collectAsStateWithLifecycle()
@@ -83,9 +77,7 @@ fun MarketContainer(
         mutableStateOf(false)
     }
 
-    val contentData = remember(
-        tickersState, marketReviewState, recentTickersState
-    ) {
+    val contentData = remember(tickersState, recentTickersState) {
 
         var tickers = emptyList<Ticker>()
         if ((tickersState as? TickersState.Success)?.tickers != null) {
@@ -96,21 +88,12 @@ fun MarketContainer(
         val recentTickerIds = recentTickers.map { ticker -> ticker.id }.toSet()
         val listedTickers = tickers.filterNot { ticker -> ticker.id in recentTickerIds }
 
-        var reviews = emptyList<MarketStats>()
-        if ((marketReviewState as? MarketViewState.MarketReviewData)?.data != null) {
-            reviews = (marketReviewState as MarketViewState.MarketReviewData).data
-        }
-
-        if (tickers.isEmpty() && reviews.isEmpty() && recentTickers.isEmpty()) {
-            MarketContainerData.NoContent
-        } else {
-            MarketContainerData.HasContent(
-                tickersData = listedTickers,
-                recentTickersData = recentTickers,
-                marketReviewData = reviews,
-                isTickersLoading = tickersState is TickersState.Initial || tickersState is TickersState.Loading,
-            )
-        }
+        MarketContainerData.HasContent(
+            tickersData = listedTickers,
+            recentTickersData = recentTickers,
+            isTickersLoading = tickersState is TickersState.Initial || tickersState is TickersState.Loading,
+            tickerError = (tickersState as? TickersState.Error)?.error,
+        )
     }
 
     val currentContentData by rememberUpdatedState(contentData)
@@ -121,8 +104,6 @@ fun MarketContainer(
                 lazyColumnRememberState.firstVisibleItemIndex,
                 lazyColumnRememberState.firstVisibleItemScrollOffset
             )
-        }.filter {
-            currentContentData is MarketContainerData.HasContent
         }.collectLatest { (index, offset) ->
             val shouldShowButton = index > 5
             floatingButtonController.onHandleVisibility(shouldShowButton)
@@ -140,7 +121,7 @@ fun MarketContainer(
                 },
                 actions = {
                     AnimatedVisibility(
-                        visible = currentContentData is MarketContainerData.HasContent && currentContentData.tickersData.isNotEmpty()
+                        visible = currentContentData.tickersData.isNotEmpty()
                     ) {
                         RenderSortComponent(
                             sortState,
@@ -180,23 +161,16 @@ fun MarketContainer(
             }
         },
     ) { innerPadding: PaddingValues ->
-        when (contentData) {
-            is MarketContainerData.NoContent -> {
-                NoContent(innerPadding, marketReviewState, tickersState)
-            }
-
-            is MarketContainerData.HasContent -> {
-                Content(
-                    innerPadding,
-                    lazyColumnRememberState,
-                    contentData,
-                    isDarkMode,
-                    textColors,
-                    onOpenRecentTickers,
-                    onSelectTicker
-                )
-            }
-        }
+        Content(
+            innerPadding,
+            lazyColumnRememberState,
+            contentData,
+            isDarkMode,
+            textColors,
+            marketOverviewHeaderContent,
+            onOpenRecentTickers,
+            onSelectTicker
+        )
     }
 }
 
@@ -209,6 +183,7 @@ private fun Content(
     contentData: MarketContainerData.HasContent,
     isDarkMode: Boolean,
     textColors: AppTextColors,
+    marketOverviewHeaderContent: @Composable (isDarkMode: Boolean, textColors: AppTextColors) -> Unit,
     onOpenRecentTickers: () -> Unit,
     onSelectTicker: (Ticker) -> Unit
 ) {
@@ -227,12 +202,7 @@ private fun Content(
         ) { index ->
             when (contentData.extractType(index)) {
                 MarketContainerData.HasContent.ContentType.HEADER_VIEW -> {
-                    MarketReviewComponent(
-                        isDarkMode = isDarkMode,
-                        textColor = textColors.primary,
-                        secondaryTextColor = textColors.secondary,
-                        stats = contentData.marketReviewData,
-                    )
+                    marketOverviewHeaderContent(isDarkMode, textColors)
                     if (contentData.recentTickersData.isNotEmpty() || contentData.tickersData.isNotEmpty()) Spacer(
                         modifier = Modifier.height(
                             24.dp
@@ -262,6 +232,14 @@ private fun Content(
                     }
                 }
 
+                MarketContainerData.HasContent.ContentType.TICKERS_ERROR -> {
+                    Text(
+                        modifier = Modifier.padding(24.dp),
+                        text = contentData.tickerError ?: "Unexpected error occurred",
+                        color = Color.Red,
+                    )
+                }
+
                 MarketContainerData.HasContent.ContentType.TICKER_TILE -> {
                     val ticker = contentData.extractTickerByIndex(index)
                     TickerTile(
@@ -282,59 +260,35 @@ private fun Content(
     }
 }
 
-@TraceRecomposition
-@Composable
-private fun NoContent(
-    innerPadding: PaddingValues, marketReviewState: MarketViewState, tickersState: TickersState,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .padding(innerPadding),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (marketReviewState is MarketViewState.Loading) {
-            CircularProgressIndicator()
-        } else if (tickersState is TickersState.Error || marketReviewState is MarketViewState.Error) {
-            Text(
-                modifier = Modifier.align(Alignment.Center),
-                text = (tickersState as? TickersState.Error)?.error
-                    ?: (marketReviewState as? MarketViewState.Error)?.message
-                    ?: "Unexpected error occurred",
-                color = Color.Red,
-            )
-        }
-    }
-}
-
 @Immutable
 private sealed class MarketContainerData(
     open val tickersData: List<Ticker>,
     open val recentTickersData: List<Ticker>,
-    open val marketReviewData: List<MarketStats>,
     open val isTickersLoading: Boolean,
 ) {
 
     data class HasContent(
         override val tickersData: List<Ticker>,
         override val recentTickersData: List<Ticker>,
-        override val marketReviewData: List<MarketStats>,
         override val isTickersLoading: Boolean,
+        val tickerError: String?,
     ) : MarketContainerData(
         tickersData = tickersData,
         recentTickersData = recentTickersData,
-        marketReviewData = marketReviewData,
         isTickersLoading = isTickersLoading,
     ) {
 
         enum class ContentType {
-            HEADER_VIEW, RECENT_TICKERS, TICKERS_LOADING, TICKER_TILE, UNKNOWN
+            HEADER_VIEW, RECENT_TICKERS, TICKERS_LOADING, TICKERS_ERROR, TICKER_TILE, UNKNOWN
         }
 
         private val hasRecentTickers = recentTickersData.isNotEmpty()
         private val tickerRowsStartIndex = 1 + if (hasRecentTickers) 1 else 0
-        private val tickerRowsCount = if (isTickersLoading) 1 else tickersData.size
+        private val tickerRowsCount = when {
+            isTickersLoading -> 1
+            tickerError != null && tickersData.isEmpty() -> 1
+            else -> tickersData.size
+        }
 
         val size: Int = tickerRowsStartIndex + tickerRowsCount
 
@@ -342,6 +296,7 @@ private sealed class MarketContainerData(
             index == 0 -> ContentType.HEADER_VIEW
             hasRecentTickers && index == 1 -> ContentType.RECENT_TICKERS
             isTickersLoading && index == tickerRowsStartIndex -> ContentType.TICKERS_LOADING
+            tickerError != null && tickersData.isEmpty() && index == tickerRowsStartIndex -> ContentType.TICKERS_ERROR
             !isTickersLoading && index in tickerRowsStartIndex until size -> ContentType.TICKER_TILE
             else -> ContentType.UNKNOWN
         }
@@ -350,6 +305,7 @@ private sealed class MarketContainerData(
             ContentType.HEADER_VIEW -> "header-review"
             ContentType.RECENT_TICKERS -> "recent-tickers"
             ContentType.TICKERS_LOADING -> "above-loading"
+            ContentType.TICKERS_ERROR -> "tickers-error"
             ContentType.TICKER_TILE -> "ticker-tile-${extractTickerByIndex(index).id}"
             ContentType.UNKNOWN -> "no-content"
         }
@@ -357,12 +313,4 @@ private sealed class MarketContainerData(
         fun extractTickerByIndex(index: Int): Ticker =
             tickersData[index - tickerRowsStartIndex]
     }
-
-    object NoContent :
-        MarketContainerData(
-            tickersData = emptyList(),
-            recentTickersData = emptyList(),
-            marketReviewData = emptyList(),
-            isTickersLoading = false,
-        )
 }
