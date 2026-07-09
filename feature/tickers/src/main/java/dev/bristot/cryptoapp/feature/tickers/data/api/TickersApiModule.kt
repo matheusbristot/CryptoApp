@@ -5,8 +5,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.bristot.cryptoapp.feature.tickers.data.api.tickers.TickersRoutes
-import retrofit2.Retrofit
-import retrofit2.create
+import dev.bristot.cryptoapp.network.CoinPaprikaRouteFactory
+import dev.bristot.cryptoapp.network.create
 import javax.inject.Singleton
 
 @Module
@@ -15,5 +15,6 @@ object TickersApiModule {
 
     @Provides
     @Singleton
-    fun provideTickersRoute(client: Retrofit): TickersRoutes = client.create<TickersRoutes>()
+    fun provideTickersRoute(routeFactory: CoinPaprikaRouteFactory): TickersRoutes =
+        routeFactory.create<TickersRoutes>()
 }

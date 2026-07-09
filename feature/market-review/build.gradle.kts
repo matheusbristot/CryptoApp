@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.hilt)
     implementation(libs.hilt.viewmodel)
-    implementation(libs.squareup.retrofit.retrofit2)
+    compileOnly(libs.squareup.retrofit.retrofit2)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
     ksp(libs.hilt.compiler)

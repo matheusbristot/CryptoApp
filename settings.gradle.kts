@@ -22,6 +22,7 @@ dependencyResolutionManagement {
 rootProject.name = "CryptoApp"
 include(":app")
 include(":common")
+include(":network")
 include(":navigation")
 include(":feature:market-review-api")
 include(":feature:market-review")
