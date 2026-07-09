@@ -9,16 +9,23 @@ Leia a documentação em:
 - Aplicativo Android em Kotlin que consome a API do Coinpaprika para exibir dados de criptomoedas.
 
 ## Arquitetura
-O projeto adota MVVM com organização em `data`, `domain` e `presentation`, distribuída entre o app e módulos Android Library.
-- `app`: application Android, host da navegação e features que ainda não foram extraídas.
+O projeto adota MVVM com organização em `data`, `domain` e `presentation`, distribuída entre módulos Android Library.
+- `app`: application Android e host da navegação.
 - `:network`: configuração base de rede para conectar na Coinpaprika, mantendo o `Retrofit` encapsulado e fornecendo `CoinPaprikaRouteFactory` para o grafo Hilt do app.
 - `:feature:market-review-api`: contrato público para integrar o header de market overview na tela de tickers sem expor a implementação da feature.
 - `:feature:market-review`: feature extraída para o market overview global da Coinpaprika (`GET global`), com API route, DTO/model, datasource, repository, contrato de domínio, ViewModel, estado e UI Compose próprios.
 - `:feature:tickers`: feature extraída para lista de tickers, detalhe, recentes, sort, domínio, datasource, repository e UI Compose do fluxo de tickers.
+- `:feature:coins`: feature extraída para a listagem base de moedas da Coinpaprika (`GET coins`), com API route, DTO/model, datasource, repository, contrato de domínio, ViewModel, estado e UI Compose próprios. Ainda não há consumo visual/navegação no `:app`.
 - `common`: módulo Android Library para contratos comuns de logger e dispatchers de coroutines, tema/cores compartilhados, botão flutuante reutilizável e bindings Hilt internos.
 - `navigation`: módulo Android Library com o contrato, o host de navegação compartilhado e o wrapper injetável `NavigationEntryProviders`.
 - `:testing`: módulo Android Library usado apenas em `testImplementation` para utilitários compartilhados de teste, como `MainDispatcherRule` e `clearForTest`.
 - A injeção de dependências principal permanece no `app`, com Hilt e `@HiltAndroidApp`; módulos compartilhados e de feature contribuem bindings Hilt próprios.
+
+## Coins
+- O antigo fluxo `data/api/coins`, `data/datasource/coins`, `data/repository/coins`, `domain/repository/CoinRepository`, entidade `Coin` e `presentation/coin_list` saiu do `:app`.
+- O provider de `CoinsRoutes` agora vive no módulo `:feature:coins`, reutilizando `CoinPaprikaRouteFactory` fornecida pelo `:network`.
+- A feature mantém a UI Compose e o `CoinListViewModel` encapsulados para uso futuro.
+- O `:app` ainda não depende de `:feature:coins` e não registra destino de navegação para Coins nesta etapa.
 
 ## Market Review
 - O antigo fluxo `data/global`, `datasource/market_review`, `repository/market_review`, `domain/repository/MarketReviewRepository` e `presentation/market_review` saiu do `:app`.
@@ -52,18 +59,22 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`, dis
 ## Testes
 - Unitários: `app/src/test`.
 - Unitários do módulo comum: `common/src/test`.
+- Unitários da feature de coins: `feature/coins/src/test`.
 - Unitários da feature de tickers: `feature/tickers/src/test`.
 - Unitários da feature de market review: `feature/market-review/src/test`.
+- Testes instrumentados Compose da feature de coins: `feature/coins/src/androidTest`.
 - Testes instrumentados Compose da feature de tickers: `feature/tickers/src/androidTest`.
 - Testes instrumentados Compose da feature de market review: `feature/market-review/src/androidTest`.
 - Contratos de integração da feature: `feature/market-review-api/src/main`.
 - Utilitários compartilhados de teste: `testing/src/main`.
 - Rodar testes unitários do módulo comum: `./gradlew :common:testDebugUnitTest`.
+- Rodar testes unitários da feature de coins: `./gradlew :feature:coins:testDebugUnitTest`.
 - Rodar testes unitários da feature de tickers: `./gradlew :feature:tickers:testDebugUnitTest`.
 - Rodar testes unitários da feature de market review: `./gradlew :feature:market-review:testDebugUnitTest`.
 - Instrumentados: `app/src/androidTest`.
 - Rodar testes unitários: `./gradlew :app:testDebugUnitTest`.
 - Rodar testes instrumentados: `./gradlew :app:connectedDebugAndroidTest`.
+- Validar coins: `./gradlew :feature:coins:testDebugUnitTest :feature:coins:compileDebugKotlin :feature:coins:compileDebugAndroidTestKotlin`.
 - Validar tickers e app: `./gradlew :common:testDebugUnitTest :common:compileDebugAndroidTestKotlin :feature:tickers:testDebugUnitTest :feature:tickers:compileDebugAndroidTestKotlin :app:testDebugUnitTest :app:compileDebugKotlin :navigation:compileDebugKotlin`.
 - Validar tudo que cobre a migração de market review: `./gradlew :common:testDebugUnitTest :feature:market-review:testDebugUnitTest :app:testDebugUnitTest`.
 - Ao tocar em UI, validar também os testes de Compose em `androidTest`.
