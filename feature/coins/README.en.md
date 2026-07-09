@@ -4,12 +4,12 @@
 The `:feature:coins` module owns the base Coinpaprika coins list. It encapsulates the `GET coins` call, domain mapping, repository, ViewModel, state, and Compose components preserved for future use.
 
 ## Organization
-- `data/api/coins`: Retrofit `CoinsRoutes` contract.
+- `data/api`: Retrofit `CoinsRoutes` contract.
 - `data/model` and `data/dto`: serializable response and domain mapper.
 - `data/datasource`: remote datasource and Hilt bind.
 - `data/repository`: `CoinRepository` implementation and Hilt bind.
 - `domain`: `Coin` entity and repository contract.
-- `presentation/coin_list`: Compose screen, widgets, state, ViewModel, and coins list sorting.
+- `presentation`: Compose screen, widgets, state, ViewModel, and coins list sorting.
 
 ## Integration
 - The module reuses `CoinPaprikaRouteFactory`; the `Retrofit` implementation stays encapsulated in `:network`, which is a direct dependency only of `:app`.

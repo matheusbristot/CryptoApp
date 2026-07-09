@@ -1,4 +1,4 @@
-package dev.bristot.cryptoapp.feature.coins.data.datasource.coins
+package dev.bristot.cryptoapp.feature.coins.data.datasource
 
 import dev.bristot.cryptoapp.feature.coins.data.model.CoinResponse
 import kotlinx.coroutines.flow.Flow

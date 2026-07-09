@@ -1,4 +1,4 @@
-package dev.bristot.cryptoapp.feature.coins.presentation.coin_list.viewmodel
+package dev.bristot.cryptoapp.feature.coins.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,8 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.bristot.cryptoapp.coroutines.dispatcher.DispatcherProvider
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.SortOrder
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.SortType
+import dev.bristot.cryptoapp.feature.coins.presentation.SortOrder
+import dev.bristot.cryptoapp.feature.coins.presentation.SortType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

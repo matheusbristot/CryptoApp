@@ -1,4 +1,4 @@
-package dev.bristot.cryptoapp.feature.coins.presentation.coin_list
+package dev.bristot.cryptoapp.feature.coins.presentation
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -24,10 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.viewmodel.CoinListState
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.viewmodel.CoinListViewModel
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.widgets.CoinList
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.widgets.CoinListLoading
+import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.CoinListState
+import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.CoinListViewModel
+import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinList
+import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListLoading
 import dev.bristot.cryptoapp.ui.widgets.floating_button.MoveToFirstTileFloatingButton
 import kotlinx.coroutines.CoroutineScope
 

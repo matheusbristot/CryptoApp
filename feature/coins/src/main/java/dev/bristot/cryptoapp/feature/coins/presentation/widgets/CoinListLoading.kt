@@ -1,4 +1,4 @@
-package dev.bristot.cryptoapp.feature.coins.presentation.coin_list.widgets
+package dev.bristot.cryptoapp.feature.coins.presentation.widgets
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

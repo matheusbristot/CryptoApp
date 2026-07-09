@@ -1,11 +1,11 @@
-package dev.bristot.cryptoapp.feature.coins.presentation.coin_list.viewmodel
+package dev.bristot.cryptoapp.feature.coins.presentation.viewmodel
 
 import dev.bristot.cryptoapp.coroutines.dispatcher.DispatcherProvider
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.CoinListSort
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.SortOrder
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.SortType
+import dev.bristot.cryptoapp.feature.coins.presentation.CoinListSort
+import dev.bristot.cryptoapp.feature.coins.presentation.SortOrder
+import dev.bristot.cryptoapp.feature.coins.presentation.SortType
 import dev.bristot.cryptoapp.testutils.MainDispatcherRule
 import dev.bristot.cryptoapp.testutils.clearForTest
 import kotlinx.coroutines.CoroutineDispatcher

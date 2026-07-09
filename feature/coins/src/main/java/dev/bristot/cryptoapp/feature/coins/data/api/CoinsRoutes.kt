@@ -1,4 +1,4 @@
-package dev.bristot.cryptoapp.feature.coins.data.api.coins
+package dev.bristot.cryptoapp.feature.coins.data.api
 
 import dev.bristot.cryptoapp.feature.coins.data.model.CoinResponse
 import retrofit2.http.GET

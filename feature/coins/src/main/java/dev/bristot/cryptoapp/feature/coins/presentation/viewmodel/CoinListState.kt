@@ -1,8 +1,8 @@
-package dev.bristot.cryptoapp.feature.coins.presentation.coin_list.viewmodel
+package dev.bristot.cryptoapp.feature.coins.presentation.viewmodel
 
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.CoinListSort
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.SortType
+import dev.bristot.cryptoapp.feature.coins.presentation.CoinListSort
+import dev.bristot.cryptoapp.feature.coins.presentation.SortType
 
 sealed class CoinListState {
     object Initial : CoinListState()

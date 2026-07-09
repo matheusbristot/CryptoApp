@@ -1,4 +1,4 @@
-package dev.bristot.cryptoapp.feature.coins.presentation.coin_list
+package dev.bristot.cryptoapp.feature.coins.presentation
 
 enum class SortType {
     RANK, NAME, SYMBOL

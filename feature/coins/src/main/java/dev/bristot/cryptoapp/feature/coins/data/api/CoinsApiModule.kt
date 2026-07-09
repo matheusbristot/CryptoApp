@@ -1,4 +1,4 @@
-package dev.bristot.cryptoapp.feature.coins.data.api.coins
+package dev.bristot.cryptoapp.feature.coins.data.api
 
 import dagger.Module
 import dagger.Provides

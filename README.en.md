@@ -22,7 +22,7 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 - Main dependency injection remains in `app`, with Hilt and `@HiltAndroidApp`; shared and feature modules also contribute their own Hilt bindings.
 
 ## Coins
-- The former `data/api/coins`, `data/datasource/coins`, `data/repository/coins`, `domain/repository/CoinRepository`, `Coin` entity, and `presentation/coin_list` flow was moved out of `:app`.
+- The former Coins flow was moved out of `:app` and now lives in `:feature:coins`, with simplified packages because the module already scopes the feature domain.
 - The `CoinsRoutes` provider now lives in `:feature:coins`, reusing `CoinPaprikaRouteFactory` provided by `:network`.
 - The feature keeps its Compose UI and `CoinListViewModel` encapsulated for future use.
 - `:app` does not depend on `:feature:coins` yet and does not register a Coins navigation destination in this step.

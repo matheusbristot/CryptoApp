@@ -6,8 +6,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.widgets.CoinListLoading
-import dev.bristot.cryptoapp.feature.coins.presentation.coin_list.widgets.CoinListTile
+import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListLoading
+import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListTile
 import dev.bristot.cryptoapp.ui.theme.CryptoAppTheme
 import org.junit.Rule
 import org.junit.Test

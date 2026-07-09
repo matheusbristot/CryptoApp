@@ -1,6 +1,6 @@
-package dev.bristot.cryptoapp.feature.coins.data.repository.coins
+package dev.bristot.cryptoapp.feature.coins.data.repository
 
-import dev.bristot.cryptoapp.feature.coins.data.datasource.coins.CoinsDatasource
+import dev.bristot.cryptoapp.feature.coins.data.datasource.CoinsDatasource
 import dev.bristot.cryptoapp.feature.coins.data.dto.coinDTO
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository

@@ -1,7 +1,7 @@
-package dev.bristot.cryptoapp.feature.coins.data.datasource.coins
+package dev.bristot.cryptoapp.feature.coins.data.datasource
 
 import dev.bristot.cryptoapp.coroutines.dispatcher.DispatcherProvider
-import dev.bristot.cryptoapp.feature.coins.data.api.coins.CoinsRoutes
+import dev.bristot.cryptoapp.feature.coins.data.api.CoinsRoutes
 import dev.bristot.cryptoapp.feature.coins.data.model.CoinResponse
 import dev.bristot.cryptoapp.logger.CryptoLogger
 import kotlinx.coroutines.flow.Flow
