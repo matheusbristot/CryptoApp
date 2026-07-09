@@ -13,7 +13,7 @@ The `:feature:market-review` module owns Coinpaprika global market overview. It 
 - `presentation/market_review`: `MarketReviewViewModel`, state, `MarketStats`, and Compose UI.
 
 ## Integration
-- The module reuses the singleton `Retrofit` provided by `:app`.
+- The module reuses `CoinPaprikaRouteFactory`; the `Retrofit` implementation stays encapsulated in `:network`, which is a direct dependency only of `:app`.
 - `MarketReviewApiModule` creates `GlobalRoutes` inside the feature.
 - `MarketReviewPresentationModule` registers `MarketReviewHeaderRenderer` through `@IntoMap` and `@MarketOverviewRendererKey(MarketOverviewRendererIds.MARKET_REVIEW)`.
 - `:app` does not import the feature implementation; it uses `MarketOverviewHeaderRegistry` from `:feature:market-review-api`.

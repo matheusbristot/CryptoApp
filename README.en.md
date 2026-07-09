@@ -10,7 +10,8 @@ Read the documentation in:
 
 ## Architecture
 The project follows MVVM with organization in `data`, `domain`, and `presentation`, split across the app and Android Library modules.
-- `app`: Android application, navigation host, base Retrofit/Coinpaprika configuration, and features that have not been extracted yet.
+- `app`: Android application, navigation host, and features that have not been extracted yet.
+- `:network`: base network configuration for connecting to Coinpaprika, keeping `Retrofit` encapsulated and providing `CoinPaprikaRouteFactory` to the app Hilt graph.
 - `:feature:market-review-api`: public contract for integrating the market overview header into the tickers screen without exposing the feature implementation.
 - `:feature:market-review`: extracted feature for Coinpaprika global market overview (`GET global`), with its own API route, DTO/model, datasource, repository, domain contract, ViewModel, state, and Compose UI.
 - `:feature:tickers`: extracted feature for the tickers list, detail, recents, sorting, domain, datasource, repository, and Compose UI.
@@ -21,14 +22,14 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 
 ## Market Review
 - The former `data/global`, `datasource/market_review`, `repository/market_review`, `domain/repository/MarketReviewRepository`, and `presentation/market_review` flow was moved out of `:app`.
-- The `GlobalRoutes` provider now lives in `:feature:market-review`, reusing the singleton `Retrofit` provided by `:app`.
+- The `GlobalRoutes` provider now lives in `:feature:market-review`, reusing `CoinPaprikaRouteFactory` provided by `:network`.
 - The tickers screen renders market review inside `:feature:tickers` through `MarketOverviewHeaderRegistry`, which resolves the renderer registered by the feature with the `MarketOverviewRendererIds.MARKET_REVIEW` key.
 - `:app` depends only on the `:feature:market-review-api` contract; `MarketReviewViewModel`, `MarketViewState`, `MarketStats`, and `MarketReviewComponent` remain encapsulated in `:feature:market-review`.
 - The feature implementation registers `MarketReviewHeaderRenderer` in Hilt using `@IntoMap` and `@MarketOverviewRendererKey`.
 
 ## Tickers
 - The former `data/api/tickers`, `data/datasource/tickers`, `data/repository/tickers`, `data/repository/recents`, ticker domain, and `presentation/tickers|ticker|recents` flow was moved out of `:app`.
-- The `TickersRoutes` provider now lives in `:feature:tickers`, reusing the singleton `Retrofit` provided by `:app`.
+- The `TickersRoutes` provider now lives in `:feature:tickers`, reusing `CoinPaprikaRouteFactory` provided by `:network`.
 - `:feature:tickers` registers the `Tickers`, `TickerDetail`, and `RecentTickers` navigation entries through Hilt `@IntoSet`.
 - The shared floating button moved to `:common`; ticker-specific sorting remains encapsulated in the feature.
 

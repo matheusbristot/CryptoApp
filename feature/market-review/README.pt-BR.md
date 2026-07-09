@@ -13,7 +13,7 @@ O módulo `:feature:market-review` concentra o market overview global da Coinpap
 - `presentation/market_review`: `MarketReviewViewModel`, state, `MarketStats` e UI Compose.
 
 ## Integração
-- O módulo reutiliza o `Retrofit` singleton fornecido pelo `:app`.
+- O módulo reutiliza `CoinPaprikaRouteFactory`; a implementação com `Retrofit` fica encapsulada no `:network`, que é dependência direta apenas do `:app`.
 - `MarketReviewApiModule` cria `GlobalRoutes` dentro da feature.
 - `MarketReviewPresentationModule` registra `MarketReviewHeaderRenderer` via `@IntoMap` e `@MarketOverviewRendererKey(MarketOverviewRendererIds.MARKET_REVIEW)`.
 - `:app` não importa a implementação da feature; ele usa `MarketOverviewHeaderRegistry` do módulo `:feature:market-review-api`.

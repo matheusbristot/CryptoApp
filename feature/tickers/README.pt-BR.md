@@ -15,7 +15,7 @@ O módulo `:feature:tickers` concentra o fluxo de tickers da Coinpaprika. Ele en
 - `presentation/sort`: estado, controller, ViewModel e menu de sort usados pela tela de tickers.
 
 ## Integração
-- O módulo reutiliza o `Retrofit` singleton fornecido pelo `:app`.
+- O módulo reutiliza `CoinPaprikaRouteFactory`; a implementação com `Retrofit` fica encapsulada no `:network`, que é dependência direta apenas do `:app`.
 - `TickersApiModule` cria `TickersRoutes` dentro da feature.
 - A feature registra as entradas `CryptoAppDestination.Tickers`, `CryptoAppDestination.TickerDetail` e `CryptoAppDestination.RecentTickers` via Hilt `@IntoSet`.
 - A tela principal resolve o header de market review por meio de `MarketOverviewHeaderRegistry` do módulo `:feature:market-review-api`.
