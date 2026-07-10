@@ -6,7 +6,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface CryptoAppDestination : NavKey {
     @Serializable
-    object Tickers : CryptoAppDestination
+    sealed interface Root : CryptoAppDestination
+
+    @Serializable
+    object Tickers : Root
+
+    @Serializable
+    object Coins : Root
 
     @Serializable
     object RecentTickers : CryptoAppDestination

@@ -12,6 +12,7 @@ class NavigationDataTest {
         val navigationData = NavigationData(CryptoAppDestination.Tickers)
 
         assertEquals(listOf(CryptoAppDestination.Tickers), navigationData.backStack.toList())
+        assertEquals(CryptoAppDestination.Tickers, navigationData.currentDestination)
         assertFalse(navigationData.hasStack())
     }
 
@@ -41,5 +42,6 @@ class NavigationDataTest {
             listOf(CryptoAppDestination.Tickers, CryptoAppDestination.RecentTickers),
             navigationData.backStack.toList(),
         )
+        assertEquals(CryptoAppDestination.RecentTickers, navigationData.currentDestination)
     }
 }
