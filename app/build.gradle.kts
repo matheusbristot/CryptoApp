@@ -62,6 +62,7 @@ dependencies {
     implementation(project(":feature:market-review-api"))
     implementation(project(":feature:market-review"))
     implementation(project(":feature:tickers"))
+    implementation(project(":feature:coins"))
     compileOnly(libs.squareup.retrofit.retrofit2)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.compose.material.icons.extended)

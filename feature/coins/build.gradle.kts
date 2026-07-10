@@ -34,6 +34,7 @@ android {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":navigation"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
