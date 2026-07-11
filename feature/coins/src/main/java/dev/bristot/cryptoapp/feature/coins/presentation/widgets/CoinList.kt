@@ -32,14 +32,17 @@ fun CoinList(
         modifier = modifier
             .fillMaxSize()
             .background(gradient)
-            .padding(24.dp),
+            .padding(start = 24.dp, top = 24.dp, end = 24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         itemsIndexed(
             items = coins,
             key = { _: Int, coin: Coin -> coin.id },
-        ) { _: Int, coin: Coin ->
-            CoinListTile(coin = coin)
+        ) { index: Int, coin: Coin ->
+            CoinListTile(
+                modifier = Modifier.padding(bottom = if (index < coins.lastIndex) 12.dp else 0.dp),
+                coin = coin,
+            )
         }
     }
 }

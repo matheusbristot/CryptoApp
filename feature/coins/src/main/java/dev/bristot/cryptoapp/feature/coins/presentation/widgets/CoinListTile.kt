@@ -32,7 +32,6 @@ fun CoinListTile(
 ) {
     Card(
         modifier = modifier
-            .padding(bottom = 12.dp)
             .fillMaxSize()
             .testTag("coin_tile_${coin.id}"),
         shape = RoundedCornerShape(24.dp),

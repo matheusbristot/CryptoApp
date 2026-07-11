@@ -191,7 +191,7 @@ private fun Content(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(start = 24.dp, top = 24.dp, end = 24.dp)
             .padding(innerPadding),
         state = lazyColumnRememberState,
     ) {
@@ -249,7 +249,9 @@ private fun Content(
                         ticker = ticker,
                         onClick = { _, _ -> onSelectTicker(ticker) },
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    if (index < contentData.size - 1) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
 
                 MarketContainerData.HasContent.ContentType.UNKNOWN -> throw IllegalStateException(
