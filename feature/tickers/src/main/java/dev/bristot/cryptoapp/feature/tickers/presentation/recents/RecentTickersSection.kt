@@ -54,8 +54,8 @@ fun RecentTickersSection(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
             .testTag("recent_tickers_section"),
+        shape = RoundedCornerShape(20.dp),
         color = containerColor,
         border = BorderStroke(width = 1.dp, color = borderColor),
     ) {
