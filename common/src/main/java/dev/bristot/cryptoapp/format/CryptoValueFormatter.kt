@@ -2,12 +2,14 @@ package dev.bristot.cryptoapp.format
 
 import androidx.compose.runtime.Stable
 import java.text.NumberFormat
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Currency
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
+import kotlin.math.abs
 
 @Stable
 interface CryptoValueFormatter {
@@ -25,14 +27,14 @@ class DefaultCryptoValueFormatter @Inject constructor() : CryptoValueFormatter {
     override fun currency(value: Double, currencyCode: String): String =
         NumberFormat.getCurrencyInstance(locale).apply {
             currency = Currency.getInstance(currencyCode)
-            maximumFractionDigits = if (value.absoluteValue < 1) 6 else 2
+            maximumFractionDigits = if (abs(value) < 1) 6 else 2
         }.format(value)
 
     override fun compactCurrency(value: Double, currencyCode: String): String {
         val (scaled, suffix) = when {
-            value.absoluteValue >= TRILLION -> value / TRILLION to "T"
-            value.absoluteValue >= BILLION -> value / BILLION to "B"
-            value.absoluteValue >= MILLION -> value / MILLION to "M"
+            abs(value) >= TRILLION -> value / TRILLION to "T"
+            abs(value) >= BILLION -> value / BILLION to "B"
+            abs(value) >= MILLION -> value / MILLION to "M"
             else -> value to ""
         }
         return "$currencyCode ${decimal(scaled)}$suffix"
@@ -50,15 +52,17 @@ class DefaultCryptoValueFormatter @Inject constructor() : CryptoValueFormatter {
     override fun integer(value: Long): String = NumberFormat.getIntegerInstance(locale).format(value)
 
     @Suppress("SimpleDateFormat")
-    override fun date(isoInstant: String): String = runCatching {
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX", Locale.US).apply {
-            timeZone = UTC
+    override fun date(isoInstant: String): String {
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX", Locale.US).apply {
+                timeZone = UTC
+            }
+            val parsed: Date = parser.parse(isoInstant) ?: return isoInstant
+            SimpleDateFormat("dd MMM yyyy", locale).format(parsed)
+        } catch (_: ParseException) {
+            isoInstant
         }
-        val parsed: Date = requireNotNull(parser.parse(isoInstant))
-        SimpleDateFormat("dd MMM yyyy", locale).format(parsed)
-    }.getOrDefault(isoInstant)
-
-    private val Double.absoluteValue: Double get() = kotlin.math.abs(this)
+    }
 
     private companion object {
         val UTC: TimeZone = TimeZone.getTimeZone("UTC")
