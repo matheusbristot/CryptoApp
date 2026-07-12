@@ -14,7 +14,10 @@ import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonState
 import dev.bristot.cryptoapp.ui.widgets.floating_button.ListState
 import dev.bristot.cryptoapp.ui.widgets.floating_button.ScrollStateSavable
+import dev.bristot.cryptoapp.format.DefaultCryptoValueFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
+
+internal fun valueFormatter() = DefaultCryptoValueFormatter()
 
 internal fun ticker(
     id: String = "btc",
@@ -26,6 +29,11 @@ internal fun ticker(
     name = name,
     symbol = symbol,
     rank = rank,
+    totalSupply = 1_000L,
+    maxSupply = 2_000L,
+    betaValue = 1.0,
+    firstDataAt = "2026-01-01T00:00:00Z",
+    lastUpdated = "2026-07-01T00:00:00Z",
     prices = mapOf(
         CurrencySymbol.BRL to Currency(
             price = 71_420.0,

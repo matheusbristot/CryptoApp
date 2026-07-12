@@ -2,6 +2,7 @@ package dev.bristot.cryptoapp.feature.tickers.presentation.recents
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,11 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.bristot.cryptoapp.feature.tickers.R
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickerTile
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.ui.theme.rememberAppTextColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +40,7 @@ fun RecentTickersContainer(
     showBackButton: Boolean = true,
     onBackButtonClick: () -> Unit,
     onSelectTicker: (Ticker) -> Unit,
+    valueFormatter: CryptoValueFormatter,
 ) {
     val state by recentTickersController.state.collectAsStateWithLifecycle()
     val isDarkMode = isSystemInDarkTheme()
@@ -48,7 +52,7 @@ fun RecentTickersContainer(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Recents",
+                        text = stringResource(R.string.recent_tickers_title),
                         color = textColors.primary,
                     )
                 },
@@ -76,7 +80,7 @@ fun RecentTickersContainer(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "Nenhum ticker recente",
+                    text = stringResource(R.string.recent_tickers_empty),
                     color = textColors.secondary,
                 )
             }
@@ -88,6 +92,21 @@ fun RecentTickersContainer(
                     .padding(innerPadding)
                     .testTag("recent_tickers_list"),
             ) {
+                item(key = "recent_header") {
+                    Column(modifier = Modifier.padding(bottom = 20.dp)) {
+                        Text(
+                            text = stringResource(R.string.recent_tickers_title),
+                            style = androidx.compose.material3.MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = textColors.primary,
+                        )
+                        Text(
+                            text = stringResource(R.string.recent_tickers_subtitle),
+                            style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                            color = textColors.secondary,
+                        )
+                    }
+                }
                 items(
                     items = state.tickers,
                     key = { ticker -> ticker.id },
@@ -97,6 +116,7 @@ fun RecentTickersContainer(
                         textColor = textColors.primary,
                         secondaryTextColor = textColors.secondary,
                         ticker = ticker,
+                        valueFormatter = valueFormatter,
                         onClick = { _, _ ->
                             recentTickersController.addRecentTicker(ticker)
                             onSelectTicker(ticker)

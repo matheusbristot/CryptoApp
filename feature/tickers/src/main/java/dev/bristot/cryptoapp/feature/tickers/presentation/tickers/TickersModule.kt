@@ -18,6 +18,7 @@ import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonManager
 import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortController
 import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortViewModel
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -28,6 +29,7 @@ object TickersModule {
     fun provideTickersNavigationData(
         navigationData: NavigationData,
         marketOverviewHeaderRegistry: MarketOverviewHeaderRegistry,
+        valueFormatter: CryptoValueFormatter,
     ): EntryProviderInstaller = {
         entry<CryptoAppDestination.Tickers> {
             val tickersViewModel = hiltViewModel<TickersViewModel>()
@@ -82,6 +84,7 @@ object TickersModule {
                         )
                     )
                 },
+                valueFormatter = valueFormatter,
             )
         }
     }

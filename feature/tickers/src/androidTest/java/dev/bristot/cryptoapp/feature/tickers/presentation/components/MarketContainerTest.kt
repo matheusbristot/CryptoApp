@@ -64,6 +64,7 @@ class MarketContainerTest {
                     onSelectTicker = { ticker ->
                         selectedTicker = ticker
                     },
+                    valueFormatter = valueFormatter(),
                 )
             }
         }
@@ -101,6 +102,7 @@ class MarketContainerTest {
                     sortController = defaultSortController(),
                     onOpenRecentTickers = { },
                     onSelectTicker = { },
+                    valueFormatter = valueFormatter(),
                 )
             }
         }

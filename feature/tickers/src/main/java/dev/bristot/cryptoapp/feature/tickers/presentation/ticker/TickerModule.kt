@@ -10,6 +10,7 @@ import dagger.multibindings.IntoSet
 import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -22,7 +23,10 @@ object TickerModule {
 
     @IntoSet
     @Provides
-    fun provideTickerNavigationData(navigationData: NavigationData): EntryProviderInstaller = {
+    fun provideTickerNavigationData(
+        navigationData: NavigationData,
+        valueFormatter: CryptoValueFormatter,
+    ): EntryProviderInstaller = {
         entry<CryptoAppDestination.TickerDetail> { tickerDetail ->
             val tickerViewModel = hiltViewModel<TickerViewModel, TickerViewModelFactory>(
                 creationCallback = { factory -> factory.create(tickerDetail.id) })
@@ -32,7 +36,8 @@ object TickerModule {
                 onBackButtonClick = navigationData::back,
                 tickerController = TickerController(
                     state = tickerViewModel.state, onLoadContent = tickerViewModel::getTicker
-                )
+                ),
+                valueFormatter = valueFormatter,
             )
         }
     }

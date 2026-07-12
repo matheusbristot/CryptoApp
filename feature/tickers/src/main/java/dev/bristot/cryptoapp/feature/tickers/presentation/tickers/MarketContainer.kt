@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RECENT_TICKERS_PREVIEW_LIMIT
 import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersController
 import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersSection
@@ -57,6 +58,7 @@ fun MarketContainer(
     sortController: SortController,
     onOpenRecentTickers: () -> Unit,
     onSelectTicker: (Ticker) -> Unit,
+    valueFormatter: CryptoValueFormatter,
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val textColors = rememberAppTextColors(isDarkMode)
@@ -169,7 +171,8 @@ fun MarketContainer(
             textColors,
             marketOverviewHeaderContent,
             onOpenRecentTickers,
-            onSelectTicker
+            onSelectTicker,
+            valueFormatter,
         )
     }
 }
@@ -185,7 +188,8 @@ private fun Content(
     textColors: AppTextColors,
     marketOverviewHeaderContent: @Composable (isDarkMode: Boolean, textColors: AppTextColors) -> Unit,
     onOpenRecentTickers: () -> Unit,
-    onSelectTicker: (Ticker) -> Unit
+    onSelectTicker: (Ticker) -> Unit,
+    valueFormatter: CryptoValueFormatter,
 ) {
 
     LazyColumn(
@@ -217,6 +221,7 @@ private fun Content(
                         textColors = textColors,
                         onTitleClick = onOpenRecentTickers,
                         onTickerClick = onSelectTicker,
+                        valueFormatter = valueFormatter,
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                 }
@@ -247,6 +252,7 @@ private fun Content(
                         textColor = textColors.primary,
                         secondaryTextColor = textColors.secondary,
                         ticker = ticker,
+                        valueFormatter = valueFormatter,
                         onClick = { _, _ -> onSelectTicker(ticker) },
                     )
                     if (index < contentData.size - 1) {

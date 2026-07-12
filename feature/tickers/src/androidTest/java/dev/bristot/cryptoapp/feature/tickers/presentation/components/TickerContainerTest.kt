@@ -36,6 +36,7 @@ class TickerContainerTest {
                 TickerContainer(
                     name = "Bitcoin",
                     tickerController = controller,
+                    valueFormatter = valueFormatter(),
                     onBackButtonClick = { backClicked = true },
                 )
             }
@@ -61,6 +62,7 @@ class TickerContainerTest {
                 TickerContainer(
                     name = "Ethereum",
                     tickerController = controller,
+                    valueFormatter = valueFormatter(),
                     onBackButtonClick = { },
                 )
             }

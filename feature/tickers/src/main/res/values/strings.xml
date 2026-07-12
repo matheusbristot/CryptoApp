@@ -1,3 +1,22 @@
 <resources>
     <string name="back_button">Back</string>
+    <string name="ticker_price">Current price</string>
+    <string name="ticker_variations">Price variation</string>
+    <string name="ticker_market">Market</string>
+    <string name="ticker_market_cap">Market cap</string>
+    <string name="ticker_market_cap_change">Market cap (24h)</string>
+    <string name="ticker_volume">Volume (24h)</string>
+    <string name="ticker_volume_change">Volume (24h change)</string>
+    <string name="ticker_supply">Supply</string>
+    <string name="ticker_total_supply">Total supply</string>
+    <string name="ticker_max_supply">Maximum supply</string>
+    <string name="ticker_beta">Beta</string>
+    <string name="ticker_ath">All-time high</string>
+    <string name="ticker_distance_ath">Distance from ATH</string>
+    <string name="ticker_ath_date">ATH date</string>
+    <string name="ticker_updated">Updated %1$s</string>
+    <string name="recent_tickers_title">Recents</string>
+    <string name="recent_tickers_subtitle">Acessados recentemente</string>
+    <string name="recent_tickers_count">%1$d ativos</string>
+    <string name="recent_tickers_empty">Nenhum ticker recente</string>
 </resources>

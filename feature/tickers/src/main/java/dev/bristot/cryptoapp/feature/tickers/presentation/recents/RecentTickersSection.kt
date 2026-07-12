@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,10 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
+import dev.bristot.cryptoapp.feature.tickers.R
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickerTile
 import dev.bristot.cryptoapp.ui.theme.AppTextColors
 import dev.bristot.cryptoapp.ui.theme.CryptoTheme
@@ -38,6 +42,7 @@ fun RecentTickersSection(
     textColors: AppTextColors,
     onTitleClick: () -> Unit,
     onTickerClick: (Ticker) -> Unit,
+    valueFormatter: CryptoValueFormatter,
     modifier: Modifier = Modifier,
 ) {
     val visibleTickers = tickers.take(RECENT_TICKERS_PREVIEW_LIMIT)
@@ -49,36 +54,49 @@ fun RecentTickersSection(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .testTag("recent_tickers_section"),
         color = containerColor,
         border = BorderStroke(width = 1.dp, color = borderColor),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .clickable(onClick = onTitleClick)
-                    .padding(vertical = 4.dp)
+                    .padding(vertical = 2.dp)
                     .testTag("recent_tickers_title"),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "Recents",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColors.primary,
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = textColors.secondary,
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(shape = RoundedCornerShape(10.dp), color = CryptoTheme.Positive.copy(alpha = .12f)) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = null,
+                            tint = CryptoTheme.Positive,
+                            modifier = Modifier.padding(8.dp),
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = stringResource(R.string.recent_tickers_title),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColors.primary,
+                        )
+                        Text(
+                            text = stringResource(R.string.recent_tickers_count, visibleTickers.size),
+                            fontSize = 12.sp,
+                            color = textColors.secondary,
+                        )
+                    }
+                }
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = textColors.secondary)
             }
 
             visibleTickers.forEachIndexed { index, ticker ->
@@ -87,6 +105,7 @@ fun RecentTickersSection(
                     textColor = textColors.primary,
                     secondaryTextColor = textColors.secondary,
                     ticker = ticker,
+                    valueFormatter = valueFormatter,
                     onClick = { _, _ -> onTickerClick(ticker) },
                 )
                 if (index < visibleTickers.lastIndex) {

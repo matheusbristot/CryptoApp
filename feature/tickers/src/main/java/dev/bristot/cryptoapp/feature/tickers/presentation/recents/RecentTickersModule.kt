@@ -10,6 +10,7 @@ import dagger.multibindings.IntoSet
 import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -17,7 +18,10 @@ object RecentTickersModule {
 
     @IntoSet
     @Provides
-    fun provideRecentTickersNavigationData(navigationData: NavigationData): EntryProviderInstaller = {
+    fun provideRecentTickersNavigationData(
+        navigationData: NavigationData,
+        valueFormatter: CryptoValueFormatter,
+    ): EntryProviderInstaller = {
         entry<CryptoAppDestination.RecentTickers> {
             val recentTickersViewModel = hiltViewModel<RecentTickersViewModel>()
             val recentTickersController = remember(recentTickersViewModel) {
@@ -38,6 +42,7 @@ object RecentTickersModule {
                         )
                     )
                 },
+                valueFormatter = valueFormatter,
             )
         }
     }

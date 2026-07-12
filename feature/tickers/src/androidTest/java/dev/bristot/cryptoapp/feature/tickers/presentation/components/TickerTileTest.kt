@@ -31,6 +31,7 @@ class TickerTileTest {
                     textColor = MaterialTheme.colorScheme.onSurface,
                     secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     ticker = ticker(),
+                    valueFormatter = valueFormatter(),
                     onClick = { id, name ->
                         clickedId = id
                         clickedName = name
@@ -40,8 +41,9 @@ class TickerTileTest {
         }
 
         composeRule.onNodeWithTag("ticker_tile_btc").assertIsDisplayed().assertHasClickAction().performClick()
-        composeRule.onNodeWithText("71420.0").assertIsDisplayed()
-        composeRule.onNodeWithText("1.5%").assertIsDisplayed()
+        composeRule.onNodeWithTag("ticker_price").assertIsDisplayed()
+        composeRule.onNodeWithText("+0.60%").assertIsDisplayed()
+        composeRule.onNodeWithText("24h").assertIsDisplayed()
 
         assertEquals("btc", clickedId)
         assertEquals("Bitcoin", clickedName)
