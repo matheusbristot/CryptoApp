@@ -29,6 +29,10 @@ class TickerDTOTest {
 
         assertEquals("btc", ticker.id)
         assertEquals("Bitcoin", ticker.name)
+        assertEquals(1_000L, ticker.totalSupply)
+        assertEquals(2_000L, ticker.maxSupply)
+        assertEquals(1.0, ticker.betaValue, 0.0)
+        assertEquals("2026-07-01T00:00:00Z", ticker.lastUpdated)
         assertEquals(
             Currency(
                 price = 71_420.0,

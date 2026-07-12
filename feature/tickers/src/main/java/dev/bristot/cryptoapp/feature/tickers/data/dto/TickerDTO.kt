@@ -26,7 +26,16 @@ fun TickerResponse.toTicker(currenciesOf: Set<CurrencySymbol>): Ticker {
         storage + (symbol to currency)
     }.let { prices ->
         Ticker(
-            id = id, name = name, symbol = symbol, rank = rank, prices = prices
+            id = id,
+            name = name,
+            symbol = symbol,
+            rank = rank,
+            totalSupply = totalSupply,
+            maxSupply = maxSupply,
+            betaValue = betaValue,
+            firstDataAt = firstDataAt,
+            lastUpdated = lastUpdated,
+            prices = prices
         )
     }
 }

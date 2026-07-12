@@ -32,6 +32,11 @@ class TickersRepositoryImplTest {
                     name = "Bitcoin",
                     symbol = "BTC",
                     rank = 1,
+                    totalSupply = 1_000L,
+                    maxSupply = 2_000L,
+                    betaValue = 1.0,
+                    firstDataAt = "2026-07-01T00:00:00Z",
+                    lastUpdated = "2026-07-01T00:00:00Z",
                     prices = mapOf(
                         CurrencySymbol.BRL to expectedCurrency(price = 71420.0),
                     ),
@@ -58,6 +63,11 @@ class TickersRepositoryImplTest {
                 name = "Ethereum",
                 symbol = "ETH",
                 rank = 2,
+                totalSupply = 1_000L,
+                maxSupply = 2_000L,
+                betaValue = 1.0,
+                firstDataAt = "2026-07-01T00:00:00Z",
+                lastUpdated = "2026-07-01T00:00:00Z",
                 prices = mapOf(
                     CurrencySymbol.USD to expectedCurrency(price = 2500.0),
                 ),
