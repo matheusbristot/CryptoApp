@@ -30,6 +30,7 @@ import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinList
 import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListLoading
 import dev.bristot.cryptoapp.ui.widgets.floating_button.MoveToFirstTileFloatingButton
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +66,7 @@ fun CoinListComponent(
                                 listViewModel.showPopUp()
                             },
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = null,
+                            contentDescription = "Sort coins",
                         )
                         DropdownMenu(
                             properties = PopupProperties(
@@ -95,7 +96,7 @@ fun CoinListComponent(
                             )
                             DropdownMenuItem(
                                 text = {
-                                    Text("Asc")
+                                    Text("Ascending")
                                 },
                                 onClick = {
                                     listViewModel.changeSort(SortOrder.ASCENDING)
@@ -103,7 +104,7 @@ fun CoinListComponent(
                             )
                             DropdownMenuItem(
                                 text = {
-                                    Text("Desc")
+                                    Text("Descending")
                                 },
                                 onClick = {
                                     listViewModel.changeSort(SortOrder.DESCENDING)
@@ -120,6 +121,9 @@ fun CoinListComponent(
         ) {
             MoveToFirstTileFloatingButton() {
                 listViewModel.handleToTop(shouldShow = false)
+                internalScope.launch {
+                    lazyColumnRememberState.animateScrollToItem(index = 0)
+                }
             }
         }
     }) { innerPadding ->
@@ -141,4 +145,3 @@ fun CoinListComponent(
         }
     }
 }
-
