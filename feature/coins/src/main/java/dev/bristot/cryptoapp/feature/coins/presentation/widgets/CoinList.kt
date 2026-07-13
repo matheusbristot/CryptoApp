@@ -61,14 +61,33 @@ private fun CoinListHeader(coinCount: Int) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(shape = RoundedCornerShape(10.dp), color = PrimaryPurple.copy(alpha = .12f)) {
-                Icon(Icons.Default.MonetizationOn, null, tint = PrimaryPurple, modifier = Modifier.padding(8.dp))
+                Icon(
+                    Icons.Default.MonetizationOn,
+                    null,
+                    tint = PrimaryPurple,
+                    modifier = Modifier.padding(8.dp)
+                )
             }
             Column(Modifier.weight(1f)) {
-                Text("Cryptocurrencies", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("Explore the assets available on the market", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Cryptocurrencies",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "Explore the assets available on the market",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             Surface(shape = RoundedCornerShape(10.dp), color = PrimaryPurple.copy(alpha = .12f)) {
-                Text("$coinCount ${if (coinCount == 1) "asset" else "assets"}", modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = PrimaryPurple)
+                Text(
+                    "$coinCount ${if (coinCount == 1) "asset" else "assets"}",
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = PrimaryPurple
+                )
             }
         }
     }
