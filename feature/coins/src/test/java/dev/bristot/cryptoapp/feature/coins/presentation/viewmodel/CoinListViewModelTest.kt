@@ -3,9 +3,10 @@ package dev.bristot.cryptoapp.feature.coins.presentation.viewmodel
 import dev.bristot.cryptoapp.coroutines.dispatcher.DispatcherProvider
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
-import dev.bristot.cryptoapp.feature.coins.presentation.CoinListSort
-import dev.bristot.cryptoapp.feature.coins.presentation.SortOrder
-import dev.bristot.cryptoapp.feature.coins.presentation.SortType
+import dev.bristot.cryptoapp.feature.coins.presentation.CoinSortTemplate
+import dev.bristot.cryptoapp.ui.sort.SortOrder
+import dev.bristot.cryptoapp.ui.sort.SortState
+import dev.bristot.cryptoapp.ui.sort.SortType
 import dev.bristot.cryptoapp.testutils.MainDispatcherRule
 import dev.bristot.cryptoapp.testutils.clearForTest
 import kotlinx.coroutines.CoroutineDispatcher
@@ -37,6 +38,7 @@ class CoinListViewModelTest {
         val viewModel = CoinListViewModel(
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
             coinRepository = repository,
+            sortTemplate = CoinSortTemplate(),
         )
 
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
@@ -44,24 +46,7 @@ class CoinListViewModelTest {
         try {
             val state = viewModel.state.first { it is CoinListState.SuccessWithUIProperties } as CoinListState.SuccessWithUIProperties
             assertEquals(listOf("btc", "eth"), state.coins.map { it.id })
-            assertEquals(CoinListSort(sortOrder = SortOrder.ASCENDING, sortType = SortType.RANK), state.sort)
-            assertTrue(state.sortPopVisibility.not())
             assertTrue(state.toTopVisibility.not())
-        } finally {
-            viewModel.clearForTest()
-        }
-    }
-
-    @Test
-    fun showAndDismissPopUp_updatesPopupVisibility() = runTest {
-        val viewModel = buildLoadedViewModel()
-
-        try {
-            viewModel.showPopUp()
-            assertTrue((viewModel.state.first { it is CoinListState.SuccessWithUIProperties } as CoinListState.SuccessWithUIProperties).sortPopVisibility)
-
-            viewModel.dismissPopUp()
-            assertTrue(!(viewModel.state.first { it is CoinListState.SuccessWithUIProperties } as CoinListState.SuccessWithUIProperties).sortPopVisibility)
         } finally {
             viewModel.clearForTest()
         }
@@ -82,7 +67,7 @@ class CoinListViewModelTest {
     }
 
     @Test
-    fun changeSortType_sortsCoinsBySelectedFieldAndClosesPopup() = runTest {
+    fun sortBy_sortsCoinsBySelectedField() = runTest {
         val viewModel = buildLoadedViewModel(
             coins = listOf(
                 coin(id = "b", name = "Beta", symbol = "B", rank = 2),
@@ -92,21 +77,17 @@ class CoinListViewModelTest {
         )
 
         try {
-            viewModel.showPopUp()
-            viewModel.changeSortType(SortType.NAME)
+            viewModel.sortBy(SortState(type = SortType.NAME))
 
-            val state = viewModel.state.first {
-                it is CoinListState.SuccessWithUIProperties && it.sort.sortType == SortType.NAME
-            } as CoinListState.SuccessWithUIProperties
+            val state = viewModel.state.first { it is CoinListState.SuccessWithUIProperties } as CoinListState.SuccessWithUIProperties
             assertEquals(listOf("a", "b", "c"), state.coins.map { it.id })
-            assertTrue(state.sortPopVisibility.not())
         } finally {
             viewModel.clearForTest()
         }
     }
 
     @Test
-    fun changeSort_updatesSortOrderAndResortsCurrentCoins() = runTest {
+    fun sortBy_updatesSortOrderAndResortsCurrentCoins() = runTest {
         val viewModel = buildLoadedViewModel(
             coins = listOf(
                 coin(id = "b", name = "Beta", symbol = "B", rank = 2),
@@ -115,14 +96,10 @@ class CoinListViewModelTest {
         )
 
         try {
-            viewModel.showPopUp()
-            viewModel.changeSort(SortOrder.DESCENDING)
+            viewModel.sortBy(SortState(order = SortOrder.DESCENDING))
 
-            val state = viewModel.state.first {
-                it is CoinListState.SuccessWithUIProperties && it.sort.sortOrder == SortOrder.DESCENDING
-            } as CoinListState.SuccessWithUIProperties
+            val state = viewModel.state.first { it is CoinListState.SuccessWithUIProperties } as CoinListState.SuccessWithUIProperties
             assertEquals(listOf("b", "a"), state.coins.map { it.id })
-            assertTrue(state.sortPopVisibility.not())
         } finally {
             viewModel.clearForTest()
         }
@@ -136,6 +113,7 @@ class CoinListViewModelTest {
         val viewModel = CoinListViewModel(
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
             coinRepository = repository,
+            sortTemplate = CoinSortTemplate(),
         )
 
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
@@ -158,6 +136,7 @@ class CoinListViewModelTest {
         val viewModel = CoinListViewModel(
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
             coinRepository = repository,
+            sortTemplate = CoinSortTemplate(),
         )
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
         return viewModel

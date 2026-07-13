@@ -10,8 +10,9 @@ import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import dev.bristot.cryptoapp.feature.tickers.domain.repository.TickersRepository
 import dev.bristot.cryptoapp.testutils.MainDispatcherRule
 import dev.bristot.cryptoapp.testutils.clearForTest
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortOrder
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortType
+import dev.bristot.cryptoapp.ui.sort.SortOrder
+import dev.bristot.cryptoapp.ui.sort.SortState
+import dev.bristot.cryptoapp.ui.sort.SortType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -38,6 +39,7 @@ class TickersViewModelTest {
         val viewModel = TickersViewModel(
             tickersRepository = repository,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            sortTemplate = TickerSortTemplate(),
         )
 
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
@@ -46,8 +48,8 @@ class TickersViewModelTest {
             val successState = viewModel.state.first { it is TickersState.Success } as TickersState.Success
             assertEquals(
                 listOf(
-                    ticker(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 2),
                     ticker(id = "eth", name = "Ethereum", symbol = "ETH", rank = 1),
+                    ticker(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 2),
                 ),
                 successState.tickers
             )
@@ -67,12 +69,13 @@ class TickersViewModelTest {
         val viewModel = TickersViewModel(
             tickersRepository = repository,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            sortTemplate = TickerSortTemplate(),
         )
 
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
         viewModel.state.first { it is TickersState.Success }
 
-        viewModel.sortBy(sortType = SortType.NAME, sortOrder = SortOrder.ASCENDING)
+        viewModel.sortBy(SortState(type = SortType.NAME, order = SortOrder.ASCENDING))
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
 
         try {

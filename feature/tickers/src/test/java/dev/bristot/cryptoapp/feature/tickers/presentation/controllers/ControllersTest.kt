@@ -2,10 +2,10 @@ package dev.bristot.cryptoapp.feature.tickers.presentation.controllers
 
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersController
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersState
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortController
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortOrder
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortState
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortType
+import dev.bristot.cryptoapp.ui.sort.SortController
+import dev.bristot.cryptoapp.ui.sort.SortOrder
+import dev.bristot.cryptoapp.ui.sort.SortState
+import dev.bristot.cryptoapp.ui.sort.SortType
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -15,23 +15,18 @@ class ControllersTest {
 
     @Test
     fun tickersController_keepsStateAndSortCallback() {
-        var receivedSortType: SortType? = null
-        var receivedSortOrder: SortOrder? = null
+        var receivedSortState: SortState? = null
         val state = MutableStateFlow<TickersState>(TickersState.Initial)
 
         val controller = TickersController(
             state = state,
-            sortBy = { sortType, sortOrder ->
-                receivedSortType = sortType
-                receivedSortOrder = sortOrder
-            }
+            sortBy = { receivedSortState = it }
         )
 
-        controller.sortBy(SortType.NAME, SortOrder.DESCENDING)
+        controller.sortBy(SortState(SortType.NAME, SortOrder.DESCENDING))
 
         assertSame(state, controller.state)
-        assertEquals(SortType.NAME, receivedSortType)
-        assertEquals(SortOrder.DESCENDING, receivedSortOrder)
+        assertEquals(SortState(SortType.NAME, SortOrder.DESCENDING), receivedSortState)
     }
 
     @Test

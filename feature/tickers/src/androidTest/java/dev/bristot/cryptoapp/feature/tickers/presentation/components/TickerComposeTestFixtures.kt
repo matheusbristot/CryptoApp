@@ -6,10 +6,10 @@ import dev.bristot.cryptoapp.feature.tickers.domain.entity.CurrencySymbol
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.MarketCap
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.PercentChangeInterval
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortController
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortOrder
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortState
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortType
+import dev.bristot.cryptoapp.ui.sort.SortController
+import dev.bristot.cryptoapp.ui.sort.SortOrder
+import dev.bristot.cryptoapp.ui.sort.SortState
+import dev.bristot.cryptoapp.ui.sort.SortType
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonState
 import dev.bristot.cryptoapp.ui.widgets.floating_button.ListState

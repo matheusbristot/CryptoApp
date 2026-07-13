@@ -5,9 +5,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.DropdownMenuSort
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortOrder
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortType
+import dev.bristot.cryptoapp.ui.sort.SortDropdownMenu
+import dev.bristot.cryptoapp.ui.sort.SortOrder
+import dev.bristot.cryptoapp.ui.sort.SortType
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -23,10 +23,10 @@ class DropdownMenuSortTest {
         var receivedOrder: SortOrder? = null
 
         composeRule.setContent {
-            DropdownMenuSort(
+            SortDropdownMenu(
                 expanded = true,
-                onChangeSortType = { receivedType = it },
-                onChangeSortOrder = { receivedOrder = it },
+                onChangeType = { receivedType = it },
+                onChangeOrder = { receivedOrder = it },
                 onDismiss = { },
             )
         }

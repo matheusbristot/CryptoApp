@@ -6,8 +6,9 @@ import dev.bristot.cryptoapp.feature.tickers.domain.entity.CurrencySymbol
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.MarketCap
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.PercentChangeInterval
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortOrder
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortType
+import dev.bristot.cryptoapp.ui.sort.SortOrder
+import dev.bristot.cryptoapp.ui.sort.SortState
+import dev.bristot.cryptoapp.ui.sort.SortType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -20,10 +21,8 @@ class TickerSortTest {
             ticker(id = "a", name = "Alpha", symbol = "A", rank = 1),
         )
 
-        val sorted = sortTickers(
-            tickers = tickers,
-            sortType = SortType.RANK,
-            sortOrder = SortOrder.ASCENDING,
+        val sorted = TickerSortTemplate().sort(
+            tickers, SortState(SortType.RANK, SortOrder.ASCENDING)
         )
 
         assertEquals(listOf("a", "b"), sorted.map { it.id })
@@ -36,13 +35,25 @@ class TickerSortTest {
             ticker(id = "a", name = "Alpha", symbol = "A", rank = 1),
         )
 
-        val sorted = sortTickers(
-            tickers = tickers,
-            sortType = SortType.NAME,
-            sortOrder = SortOrder.DESCENDING,
+        val sorted = TickerSortTemplate().sort(
+            tickers, SortState(SortType.NAME, SortOrder.DESCENDING)
         )
 
         assertEquals(listOf("b", "a"), sorted.map { it.id })
+    }
+
+    @Test
+    fun sortTickers_bySymbolAscending_ordersBySymbol() {
+        val tickers = listOf(
+            ticker(id = "z", name = "First", symbol = "ZZZ", rank = 1),
+            ticker(id = "a", name = "Second", symbol = "AAA", rank = 2),
+        )
+
+        val sorted = TickerSortTemplate().sort(
+            tickers, SortState(SortType.SYMBOL, SortOrder.ASCENDING)
+        )
+
+        assertEquals(listOf("a", "z"), sorted.map { it.id })
     }
 
     private fun ticker(

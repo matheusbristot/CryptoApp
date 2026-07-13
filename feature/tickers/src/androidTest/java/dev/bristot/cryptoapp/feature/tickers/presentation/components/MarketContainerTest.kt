@@ -45,7 +45,7 @@ class MarketContainerTest {
                                 tickers = listOf(bitcoin, ethereum, solana, cardano, xrp),
                             )
                         ),
-                        sortBy = { _, _ -> },
+                        sortBy = { },
                     ),
                     recentTickersController = RecentTickersController(
                         state = MutableStateFlow(
@@ -91,7 +91,7 @@ class MarketContainerTest {
                 MarketContainer(
                     tickersController = TickersController(
                         state = MutableStateFlow(TickersState.Success(tickers = listOf(bitcoin))),
-                        sortBy = { _, _ -> },
+                        sortBy = { },
                     ),
                     recentTickersController = RecentTickersController(
                         state = MutableStateFlow(RecentTickersState()),
