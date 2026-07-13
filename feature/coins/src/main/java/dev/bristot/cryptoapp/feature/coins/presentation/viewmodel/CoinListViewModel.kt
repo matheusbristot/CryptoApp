@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.bristot.cryptoapp.coroutines.dispatcher.DispatcherProvider
-import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
-import dev.bristot.cryptoapp.feature.coins.presentation.SortOrder
-import dev.bristot.cryptoapp.feature.coins.presentation.SortType
+import dev.bristot.cryptoapp.ui.sort.SortState
+import dev.bristot.cryptoapp.ui.sort.SortTemplate
+import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,9 +22,10 @@ import javax.inject.Inject
 class CoinListViewModel @Inject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val coinRepository: CoinRepository,
+    private val sortTemplate: SortTemplate<Coin>,
 ) : ViewModel() {
 
-    private val coinStateFlow = MutableStateFlow<CoinListState>(value = CoinListState.Initial)
+    private val coinStateFlow = MutableStateFlow<CoinListState>(CoinListState.Initial)
 
     val state: StateFlow<CoinListState>
         get() = coinStateFlow.stateIn(
@@ -37,103 +38,31 @@ class CoinListViewModel @Inject constructor(
         fetchCoins()
     }
 
-    fun changeSort(sortOrder: SortOrder) {
-        require(coinStateFlow.value is CoinListState.Success) {
-            "CoinListState must be success"
-        }
-        val coinState = (coinStateFlow.value as CoinListState.SuccessWithUIProperties)
-
-        if (sortOrder == coinState.sort.sortOrder) return
-
-        coinStateFlow.update {
-            coinState.copy(sort = coinState.sort.copy(sortOrder = sortOrder))
-        }
-        changeSortType(coinState.sort.sortType)
-    }
-
-    fun showPopUp() {
-        require(coinStateFlow.value is CoinListState.Success) {
-            "CoinListState must be success"
-        }
-        val coinState = (coinStateFlow.value as CoinListState.SuccessWithUIProperties)
-        coinStateFlow.update {
-            coinState.copy(sortPopVisibility = true)
-        }
-    }
-
-    fun dismissPopUp() {
-        require(coinStateFlow.value is CoinListState.Success) {
-            "CoinListState must be success"
-        }
-        val coinState = (coinStateFlow.value as CoinListState.SuccessWithUIProperties)
-        coinStateFlow.update {
-            coinState.copy(sortPopVisibility = false)
-        }
-    }
-
     fun handleToTop(shouldShow: Boolean) {
-        require(coinStateFlow.value is CoinListState.Success) {
-            "CoinListState must be success"
-        }
-        val coinState = (coinStateFlow.value as CoinListState.SuccessWithUIProperties)
-
-        coinStateFlow.update {
-            coinState.copy(toTopVisibility = shouldShow)
-        }
+        val current = coinStateFlow.value as? CoinListState.SuccessWithUIProperties ?: return
+        coinStateFlow.update { current.copy(toTopVisibility = shouldShow) }
     }
 
-    fun changeSortType(sortType: SortType) {
-        require(coinStateFlow.value is CoinListState.Success) {
-            "CoinListState must be success"
-        }
-        var coinState = (coinStateFlow.value as CoinListState.Success)
-        val coins = coinState.coins
-        val sortOrder = (coinStateFlow.value as CoinListState.Success).sort.sortOrder
-        val newList: List<Coin>
-        with(coins) {
-            newList = when (sortType) {
-                SortType.RANK -> {
-                    val selector: (Coin) -> Int? = { coin -> coin.rank }
-                    if (sortOrder == SortOrder.ASCENDING) sortedBy(selector)
-                    else sortedByDescending(selector)
-                }
-
-                SortType.NAME -> {
-                    val selector: (Coin) -> String? = { coin -> coin.name }
-                    if (sortOrder == SortOrder.ASCENDING) sortedBy(selector)
-                    else sortedByDescending(selector)
-                }
-
-                SortType.SYMBOL -> {
-                    val selector: (Coin) -> String? = { coin -> coin.symbol }
-                    if (sortOrder == SortOrder.ASCENDING) sortedBy(selector)
-                    else sortedByDescending(selector)
-                }
-            }
-        }
-
-        coinState = (coinStateFlow.value as CoinListState.SuccessWithUIProperties)
-
+    fun sortBy(sortState: SortState) {
+        val current = coinStateFlow.value as? CoinListState.SuccessWithUIProperties ?: return
         coinStateFlow.update {
-            coinState.copy(
-                coins = newList, sort = coinState.sort.copy(
-                    sortType = sortType
-                ), sortPopVisibility = !coinState.sortPopVisibility
-            )
+            current.copy(coins = sortTemplate.sort(current.coins, sortState))
         }
     }
 
     private fun fetchCoins() {
         viewModelScope.launch {
             coinStateFlow.update { CoinListState.Loading }
-            coinRepository.getCoins().flowOn(dispatcherProvider.default).catch {
-                coinStateFlow.update { CoinListState.Error("An error occurred") }
-            }.collect { coins ->
-                coinStateFlow.update {
-                    CoinListState.SuccessWithUIProperties(
-                        coins.sortedBy { coin -> coin.rank })
+            coinRepository.getCoins()
+                .flowOn(dispatcherProvider.default)
+                .catch { coinStateFlow.update { CoinListState.Error("An error occurred") } }
+                .collect { coins ->
+                    coinStateFlow.update {
+                        CoinListState.SuccessWithUIProperties(
+                            coins = sortTemplate.sort(coins, SortState()),
+                        )
+                    }
                 }
-            }
         }
     }
 }

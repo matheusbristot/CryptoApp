@@ -8,14 +8,12 @@ import dev.bristot.cryptoapp.coroutines.dispatcher.DispatcherProvider
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.CurrencySymbol
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import dev.bristot.cryptoapp.feature.tickers.domain.repository.TickersRepository
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortOrder
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortType
-import kotlinx.coroutines.flow.Flow
+import dev.bristot.cryptoapp.ui.sort.SortState
+import dev.bristot.cryptoapp.ui.sort.SortTemplate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -25,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TickersViewModel @Inject constructor(
     private val tickersRepository: TickersRepository,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val sortTemplate: SortTemplate<Ticker>,
 ) : ViewModel() {
 
     private val tickersStateFlow = MutableStateFlow<TickersState>(value = TickersState.Initial)
@@ -51,34 +50,22 @@ class TickersViewModel @Inject constructor(
                     }
                 }.collect { tickers ->
                     tickersStateFlow.update {
-                        TickersState.Success(tickers = tickers)
+                        TickersState.Success(tickers = sortTemplate.sort(tickers, SortState()))
                     }
                 }
         }
     }
 
-    fun sortBy(sortType: SortType, sortOrder: SortOrder) {
+    fun sortBy(sortState: SortState) {
         require(tickersStateFlow.value is TickersState.Success, lazyMessage = {
             "IllegalArgument: ${tickersStateFlow.value}, use a TickersState.Success instead of"
         })
 
         val state = (tickersStateFlow.value as TickersState.Success)
-        viewModelScope.launch {
-            val sortFlow: Flow<List<Ticker>> = flowOf(
-                sortTickers(
-                    tickers = state.tickers,
-                    sortType = sortType,
-                    sortOrder = sortOrder,
-                )
-            )
-            sortFlow.flowOn(dispatcherProvider.default).catch {
-                tickersStateFlow.update {
-                    TickersState.Error(error = "Unexpected error: when sort")
-                }
-            }.collect { newList ->
-                tickersStateFlow.update {
-                    state.copy(tickers = newList)
-                }
+        viewModelScope.launch(dispatcherProvider.default) {
+            val sortedTickers = sortTemplate.sort(state.tickers, sortState)
+            tickersStateFlow.update {
+                state.copy(tickers = sortedTickers)
             }
         }
     }

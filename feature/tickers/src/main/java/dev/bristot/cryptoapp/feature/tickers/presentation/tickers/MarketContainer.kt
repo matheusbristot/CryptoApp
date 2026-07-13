@@ -21,7 +21,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -41,7 +40,8 @@ import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersS
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonState
 import dev.bristot.cryptoapp.ui.widgets.floating_button.MoveToFirstTileFloatingButton
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortController
+import dev.bristot.cryptoapp.ui.sort.SortComponent
+import dev.bristot.cryptoapp.ui.sort.SortController
 import dev.bristot.cryptoapp.ui.theme.AppTextColors
 import dev.bristot.cryptoapp.ui.theme.rememberAppTextColors
 import kotlinx.coroutines.flow.collectLatest
@@ -74,10 +74,6 @@ fun MarketContainer(
         initialFirstVisibleItemIndex = indexes.first,
         initialFirstVisibleItemScrollOffset = indexes.second
     )
-
-    val dropMenuVisibility = rememberSaveable {
-        mutableStateOf(false)
-    }
 
     val contentData = remember(tickersState, recentTickersState) {
 
@@ -125,21 +121,22 @@ fun MarketContainer(
                     AnimatedVisibility(
                         visible = currentContentData.tickersData.isNotEmpty()
                     ) {
-                        RenderSortComponent(
-                            sortState,
-                            dropMenuVisibility,
+                        SortComponent(
+                            state = sortState,
                             onScrollToFirstIndex = {
                                 coroutineScope.launch {
                                     lazyColumnRememberState.scrollToItem(index = 0)
                                 }
                             },
                             onChangeType = { type ->
+                                val updated = sortState.copy(type = type)
                                 sortController.changeType(type)
-                                tickersController.sortBy(type, sortState.order)
+                                tickersController.sortBy(updated)
                             },
                             onChangeOrder = { order ->
+                                val updated = sortState.copy(order = order)
                                 sortController.changeOrder(order)
-                                tickersController.sortBy(sortState.type, order)
+                                tickersController.sortBy(updated)
                             },
                         )
                     }

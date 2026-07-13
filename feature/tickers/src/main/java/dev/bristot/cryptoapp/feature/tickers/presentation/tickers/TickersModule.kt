@@ -16,8 +16,8 @@ import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersC
 import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersViewModel
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonManager
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortController
-import dev.bristot.cryptoapp.feature.tickers.presentation.sort.SortViewModel
+import dev.bristot.cryptoapp.ui.sort.SortController
+import dev.bristot.cryptoapp.ui.sort.SortViewModel
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
 
 @Module
