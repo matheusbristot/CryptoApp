@@ -16,9 +16,11 @@ The `:feature:market-review` module owns Coinpaprika global market overview. It 
 - The module reuses `CoinPaprikaRouteFactory`; the `Retrofit` implementation stays encapsulated in `:network`, which is a direct dependency only of `:app`.
 - `MarketReviewApiModule` creates `GlobalRoutes` inside the feature.
 - `MarketReviewPresentationModule` registers `MarketReviewHeaderRenderer` through `@IntoMap` and `@MarketOverviewRendererKey(MarketOverviewRendererIds.MARKET_REVIEW)`.
-- `:app` does not import the feature implementation; it uses `MarketOverviewHeaderRegistry` from `:feature:market-review-api`.
+- The renderer receives `MarketOverviewQuoteData` from the tickers screen and formats market cap and 24-hour volume in the quote selected in Settings.
+- `:app` includes this module so its Hilt renderer registration is available, but the tickers host imports only `MarketOverviewHeaderRegistry` and other contracts from `:feature:market-review-api`.
 - The feature depends on `:common` for logging, dispatchers, and shared theme primitives.
 - The feature depends on `:feature:market-review-api` to implement the `MarketOverviewHeaderRenderer` contract.
+- Backend-quoted values are displayed directly; the feature does not perform currency conversion.
 
 ## Tests
 - Unit tests: `feature/market-review/src/test`.

@@ -23,8 +23,13 @@ Defines the possible app routes with a `sealed interface` and `NavKey`.
 
 The current contract includes:
 - `Tickers`
+- `Coins`
+- `Settings`
 - `RecentTickers`
 - `TickerDetail`
+
+### `LocalNavigationHostActive`
+Exposes whether a retained root navigation host is currently visible. Root tabs remain composed to preserve their back stack and UI state, while feature Controllers use this signal to defer network refreshes until their tab becomes active.
 
 ### `NavigationData`
 Keeps the `backStack` and the basic navigation operations:
@@ -68,11 +73,13 @@ It receives:
 4. `NavigationCryptoAppHilt` receives the composed provider block and builds the `NavDisplay`.
 5. When a feature calls `navigationData.forward(...)`, the `backStack` is updated.
 6. `NavDisplay` renders the new route using the entry registered by the corresponding feature.
+7. When the selected root changes, `LocalNavigationHostActive` invalidates the retained hosts so the newly active feature can run a conditional refresh.
 
 ## Dependency rules
 - The `navigation` module does not know internal feature details.
 - Features depend on the navigation contract, but not on the `app`.
 - `:feature:tickers` registers the `Tickers`, `RecentTickers`, and `TickerDetail` entries without exposing its UI implementation to the application module.
+- `:feature:coins` and `:feature:settings` register their root entries through the same contract.
 - The `app` remains the application entry point and only orchestrates the final UI tree.
 
 ## Current organization

@@ -1,10 +1,11 @@
 # Market Review API
 
 ## Responsabilidade
-O módulo `:feature:market-review-api` define o contrato público usado pelo `:app` para renderizar o header de market overview sem conhecer a implementação da feature.
+O módulo `:feature:market-review-api` define o contrato público usado pelo host de tickers para renderizar o header de market overview sem conhecer a implementação da feature.
 
 ## APIs públicas
 - `MarketOverviewHeaderRenderer`: contrato Compose implementado por features que expõem um header de market overview.
+- `MarketOverviewQuoteData`: entrada imutável com o código da moeda selecionada, market cap agregado e volume de 24 horas.
 - `MarketOverviewRendererKey`: `@MapKey` usado por Hilt para registrar renderers por identificador.
 - `MarketOverviewRendererIds`: IDs conhecidos para renderers disponíveis.
 - `MarketOverviewHeaderRegistry`: registry injetável que encapsula o `Map<String, MarketOverviewHeaderRenderer>` gerado por Hilt.
@@ -12,7 +13,8 @@ O módulo `:feature:market-review-api` define o contrato público usado pelo `:a
 ## Uso
 - A feature implementa `MarketOverviewHeaderRenderer`.
 - A feature registra a implementação com `@IntoMap` e `@MarketOverviewRendererKey`.
-- O `:app` injeta `MarketOverviewHeaderRegistry` e resolve o renderer necessário com `required(id)`.
+- O host de tickers fornece ao renderer um `MarketOverviewQuoteData` específico da quote.
+- O host de tickers injeta `MarketOverviewHeaderRegistry` e resolve o renderer necessário com `required(id)`.
 
 Exemplo:
 
