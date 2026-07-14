@@ -13,5 +13,5 @@ data class Ticker(
     val maxSupply: Long = 0,
     val betaValue: Double = 0.0,
     val firstDataAt: String = "",
-    val lastUpdated: String = ""
+    val lastUpdated: String = "",
 )

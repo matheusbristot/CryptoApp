@@ -52,5 +52,4 @@ class DomainModelsTest {
 
         assertEquals(ticker, decoded)
     }
-
 }
