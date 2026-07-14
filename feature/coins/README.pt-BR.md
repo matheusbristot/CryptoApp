@@ -18,7 +18,7 @@ O módulo `:feature:coins` concentra a listagem de moedas da Coinpaprika. Ele co
 - A feature depende de `:common` para logger, dispatchers, tema e botão flutuante compartilhado.
 - A feature depende de `:feature:settings-api` para a quote selecionada e de `:feature:tickers-api` para preços cotados. Ela não deve depender da implementação `:feature:tickers`.
 - Quando a tab Coins fica ativa, `CoinListViewModel` lê as configurações atuais e delega a orquestração ao `GetQuotedCoinsUseCase` somente quando a quote mudou. Tabs ocultas não atualizam, e não existe conversão monetária local.
-- A feature registra `CryptoAppDestination.Coins` via Hilt `@IntoSet`, e o app a apresenta na navegação inferior.
+- A feature declara `CoinsDestination` e contribui sua entrada e metadata raiz via Hilt `@IntoSet`; o app monta a navegação inferior sem conhecer a rota concreta.
 - `CoinListModule` lembra `CoinListController` e `SortController`; `CoinListComponent` recebe esses holders estáveis em vez de ViewModels. Seu coroutine scope é um detalhe interno do runtime Compose.
 
 ## Testes

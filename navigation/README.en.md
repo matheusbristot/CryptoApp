@@ -10,7 +10,7 @@ This Android Library module centralizes the application's navigation infrastruct
 
 It exists to:
 
-- keep the destination contract in a single place;
+- keep only the open navigation contracts in a single place;
 - expose the navigation host used by the `app`;
 - let future features register routes without depending directly on the application module;
 - reduce coupling between navigation and each feature's UI implementation.
@@ -19,14 +19,16 @@ It exists to:
 The module follows a simple structure focused on contract and navigation host.
 
 ### `CryptoAppDestination`
-Defines the possible app routes with a `sealed interface` and `NavKey`.
+This is an open contract based on `NavKey`. Concrete routes do not live in this module:
+each feature declares and serializes its own destinations, without changing a central
+`sealed interface` when screens are added or removed.
 
-The current contract includes:
-- `Tickers`
-- `Coins`
-- `Settings`
-- `RecentTickers`
-- `TickerDetail`
+`RootDestination` marks destinations that take part in root navigation.
+
+### `NavigationRegistry`
+This is the only registry injected into the `app`. It collects root destinations
+contributed through Hilt/`IntoSet` and internal entries. Each root carries its destination,
+label, icon, order, and installer, so a root route is not registered twice.
 
 ### `LocalNavigationHostActive`
 Exposes whether a retained root navigation host is currently visible. Root tabs remain composed to preserve their back stack and UI state, while feature Controllers use this signal to defer network refreshes until their tab becomes active.
@@ -49,14 +51,8 @@ Each feature contributes a function with the type:
 EntryProviderScope<CryptoAppDestination>.() -> Unit
 ```
 
-### `NavigationEntryProviders`
-This is an injectable wrapper that lives in the `navigation` module and collects the `EntryProviderInstaller` set.
-
-It exists to:
-
-- keep the multibinding `Set` away from the Compose boundary;
-- expose a single stable lambda to the host;
-- preserve Hilt/`IntoSet` usage in the features without leaking that detail into `MainActivity`.
+The separate `EntryProviderInstaller` set is reserved for non-root routes such as details
+and internal screens. The registry combines both into one stable lambda for the host.
 
 ### `NavigationCryptoAppHilt`
 This is the Compose host that builds `NavDisplay`, applies transitions, and connects the `entry providers`.
@@ -67,17 +63,18 @@ It receives:
 - `entryProviderBlock`
 
 ## Flow
-1. The `app` creates and injects a `NavigationData` instance.
-2. Features contribute `EntryProviderInstaller` bindings through Hilt using `IntoSet`.
-3. `NavigationEntryProviders` groups the providers and exposes a stable lambda for the host.
-4. `NavigationCryptoAppHilt` receives the composed provider block and builds the `NavDisplay`.
-5. When a feature calls `navigationData.forward(...)`, the `backStack` is updated.
-6. `NavDisplay` renders the new route using the entry registered by the corresponding feature.
-7. When the selected root changes, `LocalNavigationHostActive` invalidates the retained hosts so the newly active feature can run a conditional refresh.
+1. Each feature declares its concrete destinations.
+2. Features contribute `RootNavigationDestination` for roots and `EntryProviderInstaller` only for internal routes through Hilt using `IntoSet`.
+3. The `app` creates `NavigationData` with the first ordered root provided by the registry.
+4. `NavigationRegistry` combines roots and internal entries and exposes a stable lambda for the host.
+5. `NavigationCryptoAppHilt` receives the composed provider block and builds the `NavDisplay`.
+6. When a feature calls `navigationData.forward(...)`, the `backStack` is updated.
+7. `NavDisplay` renders the new route using the entry registered by the corresponding feature.
 
 ## Dependency rules
 - The `navigation` module does not know internal feature details.
-- Features depend on the navigation contract, but not on the `app`.
+- Features depend only on the open navigation contracts, but not on the `app`.
+- Route declarations belong to their features and remain separate from the modules that register their screens.
 - `:feature:tickers` registers the `Tickers`, `RecentTickers`, and `TickerDetail` entries without exposing its UI implementation to the application module.
 - `:feature:coins` and `:feature:settings` register their root entries through the same contract.
 - The `app` remains the application entry point and only orchestrates the final UI tree.

@@ -8,7 +8,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 typealias EntryProviderInstaller = EntryProviderScope<CryptoAppDestination>.() -> Unit
 
 @Stable
-class NavigationData(initialDestination: CryptoAppDestination.Root) {
+class NavigationData(initialDestination: RootDestination) {
     val backStack: SnapshotStateList<CryptoAppDestination> = mutableStateListOf(initialDestination)
 
     val currentDestination: CryptoAppDestination

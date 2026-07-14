@@ -18,7 +18,7 @@ The `:feature:coins` module owns the Coinpaprika coins list. It combines metadat
 - The feature depends on `:common` for logger, dispatchers, theme, and the shared floating button.
 - The feature depends on `:feature:settings-api` for the selected quote and on `:feature:tickers-api` for quoted prices. It must not depend on the `:feature:tickers` implementation.
 - When the Coins tab becomes active, `CoinListViewModel` reads the current settings and delegates data orchestration to `GetQuotedCoinsUseCase` only when the selected quote changed. Hidden tabs do not refresh, and no local currency conversion is performed.
-- The feature registers `CryptoAppDestination.Coins` through Hilt `@IntoSet`, and the app exposes it in bottom navigation.
+- The feature declares `CoinsDestination` and contributes its entry and root metadata through Hilt `@IntoSet`; the app builds bottom navigation without knowing the concrete route.
 - `CoinListModule` remembers `CoinListController` and `SortController`; `CoinListComponent` receives these stable holders instead of ViewModels. Its coroutine scope is an internal Compose runtime detail.
 
 ## Tests

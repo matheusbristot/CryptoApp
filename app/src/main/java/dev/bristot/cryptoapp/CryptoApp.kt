@@ -7,8 +7,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.NavigationData
+import dev.bristot.cryptoapp.navigation.NavigationRegistry
 
 @HiltAndroidApp
 class CryptoApp : Application()
@@ -19,6 +19,9 @@ object CryptoAppModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideNavigationData(): NavigationData =
-        NavigationData(initialDestination = CryptoAppDestination.Tickers)
+    fun provideNavigationData(
+        navigationRegistry: NavigationRegistry,
+    ): NavigationData = NavigationData(
+        initialDestination = navigationRegistry.initialDestination,
+    )
 }

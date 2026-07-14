@@ -11,12 +11,13 @@ import dagger.assisted.AssistedFactory
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.multibindings.IntoSet
-import dev.bristot.cryptoapp.navigation.CryptoAppDestination
+import dev.bristot.cryptoapp.feature.tickers.navigation.TickerDetailDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
 import dev.bristot.cryptoapp.navigation.LocalNavigationHostActive
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
+import javax.inject.Provider
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -30,11 +31,12 @@ object TickerModule {
     @IntoSet
     @Provides
     fun provideTickerNavigationData(
-        navigationData: NavigationData,
+        navigationDataProvider: Provider<NavigationData>,
         valueFormatter: CryptoValueFormatter,
         settingsRepository: SettingsRepository,
     ): EntryProviderInstaller = {
-        entry<CryptoAppDestination.TickerDetail> { tickerDetail ->
+        entry<TickerDetailDestination> { tickerDetail ->
+            val navigationData = navigationDataProvider.get()
             val isActive = LocalNavigationHostActive.current
             val tickerViewModel = hiltViewModel<TickerViewModel, TickerViewModelFactory>(
                 creationCallback = { factory -> factory.create(tickerDetail.id) })

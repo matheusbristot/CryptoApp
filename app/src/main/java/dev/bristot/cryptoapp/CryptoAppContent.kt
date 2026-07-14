@@ -21,20 +21,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.NavigationData
-import dev.bristot.cryptoapp.navigation.NavigationEntryProviders
+import dev.bristot.cryptoapp.navigation.NavigationRegistry
+import dev.bristot.cryptoapp.navigation.RootDestination
 
 @Composable
 fun CryptoAppContent(
     initialRootNavigationData: NavigationData,
-    navigationEntryProviders: NavigationEntryProviders,
+    navigationRegistry: NavigationRegistry,
 ) {
     val navigationState = rememberCryptoAppNavigationState(
         initialRootNavigationData = initialRootNavigationData,
-        navigationEntryProviders = navigationEntryProviders,
+        navigationRegistry = navigationRegistry,
     )
-    val rootNavigationItems = rememberCryptoAppRootNavigationItems()
+    val rootNavigationItems = navigationRegistry.rootDestinations
     val currentDestination = navigationState.currentDestination
     var isBottomBarExpanded by remember { mutableStateOf(true) }
     val bottomBarScrollConnection = remember {
@@ -56,7 +56,7 @@ fun CryptoAppContent(
             .fillMaxSize()
             .nestedScroll(bottomBarScrollConnection),
         bottomBar = {
-            if (currentDestination is CryptoAppDestination.Root) {
+            if (currentDestination is RootDestination) {
                 AnimatedVisibility(
                     visible = isBottomBarExpanded,
                     enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),

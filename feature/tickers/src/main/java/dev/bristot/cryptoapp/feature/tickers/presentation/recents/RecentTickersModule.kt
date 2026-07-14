@@ -9,11 +9,13 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.multibindings.IntoSet
-import dev.bristot.cryptoapp.navigation.CryptoAppDestination
+import dev.bristot.cryptoapp.feature.tickers.navigation.RecentTickersDestination
+import dev.bristot.cryptoapp.feature.tickers.navigation.TickerDetailDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
+import javax.inject.Provider
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -22,11 +24,12 @@ object RecentTickersModule {
     @IntoSet
     @Provides
     fun provideRecentTickersNavigationData(
-        navigationData: NavigationData,
+        navigationDataProvider: Provider<NavigationData>,
         valueFormatter: CryptoValueFormatter,
         settingsRepository: SettingsRepository,
     ): EntryProviderInstaller = {
-        entry<CryptoAppDestination.RecentTickers> {
+        entry<RecentTickersDestination> {
+            val navigationData = navigationDataProvider.get()
             val settings by settingsRepository.settings.collectAsStateWithLifecycle()
             val recentTickersViewModel = hiltViewModel<RecentTickersViewModel>()
             val recentTickersController = remember(recentTickersViewModel) {
@@ -41,7 +44,7 @@ object RecentTickersModule {
                 onBackButtonClick = navigationData::back,
                 onSelectTicker = { ticker ->
                     navigationData.forward(
-                        CryptoAppDestination.TickerDetail(
+                        TickerDetailDestination(
                             id = ticker.id,
                             name = ticker.name,
                         )

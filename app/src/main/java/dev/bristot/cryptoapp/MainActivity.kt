@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import dev.bristot.cryptoapp.navigation.NavigationData
-import dev.bristot.cryptoapp.navigation.NavigationEntryProviders
+import dev.bristot.cryptoapp.navigation.NavigationRegistry
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
     lateinit var initialRootNavigationData: NavigationData
 
     @Inject
-    lateinit var navigationEntryProviders: NavigationEntryProviders
+    lateinit var navigationRegistry: NavigationRegistry
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             CryptoAppContent(
                 initialRootNavigationData = initialRootNavigationData,
-                navigationEntryProviders = navigationEntryProviders,
+                navigationRegistry = navigationRegistry,
             )
         }
     }

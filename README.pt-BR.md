@@ -20,7 +20,7 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`, dis
 - `:feature:settings-api`: modelo público de configurações, quotes suportadas e contrato do repository.
 - `:feature:settings`: repository com Preferences DataStore, ViewModel, Controller Compose estável, tela e registro de navegação.
 - `common`: módulo Android Library para contratos comuns de logger e dispatchers de coroutines, tema/cores compartilhados, botão flutuante reutilizável e bindings Hilt internos.
-- `navigation`: módulo Android Library com o contrato, o host de navegação compartilhado e o wrapper injetável `NavigationEntryProviders`.
+- `navigation`: módulo Android Library com contratos abertos, host compartilhado e o registro injetável único `NavigationRegistry`.
 - `:testing`: módulo Android Library usado apenas em `testImplementation` para utilitários compartilhados de teste, como `MainDispatcherRule` e `clearForTest`.
 - A injeção de dependências principal permanece no `app`, com Hilt e `@HiltAndroidApp`; módulos compartilhados e de feature contribuem bindings Hilt próprios.
 

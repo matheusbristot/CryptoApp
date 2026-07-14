@@ -19,7 +19,7 @@ The `:feature:tickers` module implements the Coinpaprika tickers flow. It encaps
 - `TickersApiModule` creates `TickersRoutes` inside the feature.
 - Multiple requested quotes are serialized as the single comma-separated Coinpaprika parameter (for example, `quotes=BRL,BTC`).
 - The implementation depends on `:feature:tickers-api`; consumers that only need ticker data depend on the API module instead of this module.
-- The feature registers `CryptoAppDestination.Tickers`, `CryptoAppDestination.TickerDetail`, and `CryptoAppDestination.RecentTickers` entries through Hilt `@IntoSet`.
+- The feature declares `TickersDestination`, `TickerDetailDestination`, and `RecentTickersDestination`, registering their entries and root metadata through Hilt `@IntoSet`.
 - The main screen resolves the market review header through `MarketOverviewHeaderRegistry` from `:feature:market-review-api`.
 - The feature depends on `:common` for logging, dispatchers, theme primitives, and the shared floating button.
 - The feature depends on `:navigation` for the destination contract and `NavigationData`.

@@ -7,41 +7,44 @@ import org.junit.Test
 
 class NavigationDataTest {
 
+    private data object InitialDestination : RootDestination
+    private data object DetailDestination : CryptoAppDestination
+
     @Test
     fun `back stack starts with the initial destination`() {
-        val navigationData = NavigationData(CryptoAppDestination.Tickers)
+        val navigationData = NavigationData(InitialDestination)
 
-        assertEquals(listOf(CryptoAppDestination.Tickers), navigationData.backStack.toList())
-        assertEquals(CryptoAppDestination.Tickers, navigationData.currentDestination)
+        assertEquals(listOf(InitialDestination), navigationData.backStack.toList())
+        assertEquals(InitialDestination, navigationData.currentDestination)
         assertFalse(navigationData.hasStack())
     }
 
     @Test
     fun `forward and back update the stack`() {
-        val navigationData = NavigationData(CryptoAppDestination.Tickers)
+        val navigationData = NavigationData(InitialDestination)
 
-        navigationData.forward(CryptoAppDestination.TickerDetail(id = "1", name = "Bitcoin"))
+        navigationData.forward(DetailDestination)
 
         assertTrue(navigationData.hasStack())
         assertEquals(2, navigationData.backStack.size)
 
         navigationData.back()
 
-        assertEquals(listOf(CryptoAppDestination.Tickers), navigationData.backStack.toList())
+        assertEquals(listOf(InitialDestination), navigationData.backStack.toList())
         assertFalse(navigationData.hasStack())
     }
 
     @Test
-    fun `forward supports recent tickers destination`() {
-        val navigationData = NavigationData(CryptoAppDestination.Tickers)
+    fun `forward supports feature destination`() {
+        val navigationData = NavigationData(InitialDestination)
 
-        navigationData.forward(CryptoAppDestination.RecentTickers)
+        navigationData.forward(DetailDestination)
 
         assertTrue(navigationData.hasStack())
         assertEquals(
-            listOf(CryptoAppDestination.Tickers, CryptoAppDestination.RecentTickers),
+            listOf(InitialDestination, DetailDestination),
             navigationData.backStack.toList(),
         )
-        assertEquals(CryptoAppDestination.RecentTickers, navigationData.currentDestination)
+        assertEquals(DetailDestination, navigationData.currentDestination)
     }
 }
