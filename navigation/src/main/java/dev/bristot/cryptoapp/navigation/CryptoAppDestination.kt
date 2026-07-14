@@ -15,6 +15,9 @@ sealed interface CryptoAppDestination : NavKey {
     object Coins : Root
 
     @Serializable
+    object Settings : Root
+
+    @Serializable
     object RecentTickers : CryptoAppDestination
 
     @Serializable

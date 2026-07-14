@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -24,6 +26,7 @@ import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationCryptoAppHilt
 import dev.bristot.cryptoapp.navigation.NavigationData
 import dev.bristot.cryptoapp.navigation.NavigationEntryProviders
+import dev.bristot.cryptoapp.navigation.LocalNavigationHostActive
 
 @Composable
 internal fun rememberCryptoAppRootNavigationItems(): List<CryptoAppRootNavigationItem> = remember {
@@ -37,6 +40,11 @@ internal fun rememberCryptoAppRootNavigationItems(): List<CryptoAppRootNavigatio
             destination = CryptoAppDestination.Coins,
             label = "Coins",
             icon = Icons.Default.MonetizationOn,
+        ),
+        CryptoAppRootNavigationItem(
+            destination = CryptoAppDestination.Settings,
+            label = "Settings",
+            icon = Icons.Default.Settings,
         ),
     )
 }
@@ -103,13 +111,15 @@ internal fun RootNavigationHost(
     navigationData: NavigationData,
     entryProviderBlock: EntryProviderInstaller,
 ) {
-    NavigationCryptoAppHilt(
-        modifier = modifier
-            .alpha(if (isSelected) 1f else 0f)
-            .zIndex(if (isSelected) 1f else 0f),
-        navigationData = navigationData,
-        entryProviderBlock = entryProviderBlock,
-    )
+    CompositionLocalProvider(LocalNavigationHostActive provides isSelected) {
+        NavigationCryptoAppHilt(
+            modifier = modifier
+                .alpha(if (isSelected) 1f else 0f)
+                .zIndex(if (isSelected) 1f else 0f),
+            navigationData = navigationData,
+            entryProviderBlock = entryProviderBlock,
+        )
+    }
 }
 
 @Composable

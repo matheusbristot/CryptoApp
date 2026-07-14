@@ -1,0 +1,8 @@
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_display_quote_title">Displayed quote currency</string>
+    <string name="settings_display_quote_description">The displayed value is the quote returned by the backend. The app does not perform currency conversion.</string>
+    <string name="settings_requested_quotes_title">Quote currencies requested from the backend</string>
+    <string name="settings_requested_quotes_description">Select up to three currencies. The displayed quote currency must always remain enabled.</string>
+    <string name="settings_current_quote">Currently displayed quote currency</string>
+</resources>
