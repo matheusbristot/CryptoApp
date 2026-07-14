@@ -18,7 +18,9 @@ class TickersRemoteDataSourceImpl @Inject constructor(
     override suspend fun getTickers(currencies: List<String>): Flow<List<TickerResponse>> = flow {
         try {
             logger.debug(message = "Thread: ${Thread.currentThread().name}")
-            val tickers = tickersRoutes.getTickersByQuotes(quotes = currencies)
+            val tickers = tickersRoutes.getTickersByQuotes(
+                quotes = currencies.joinToString(separator = ",")
+            )
             logger.debug(message = "Thread: ${Thread.currentThread().name}")
             emit(tickers)
         } catch (exception: Exception) {
@@ -30,7 +32,10 @@ class TickersRemoteDataSourceImpl @Inject constructor(
         flow {
             try {
                 logger.debug(message = "Thread: ${Thread.currentThread().name}")
-                val ticker = tickersRoutes.getTickerByQuotes(coinId = coinId, quotes = currencies)
+                val ticker = tickersRoutes.getTickerByQuotes(
+                    coinId = coinId,
+                    quotes = currencies.joinToString(separator = ","),
+                )
                 logger.debug(message = "Thread: ${Thread.currentThread().name}")
                 emit(ticker)
             } catch (exception: Exception) {

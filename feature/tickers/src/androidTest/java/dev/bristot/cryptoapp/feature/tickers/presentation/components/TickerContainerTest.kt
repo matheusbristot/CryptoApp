@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import dev.bristot.cryptoapp.feature.tickers.presentation.ticker.TickerContainer
 import dev.bristot.cryptoapp.feature.tickers.presentation.ticker.TickerController
 import dev.bristot.cryptoapp.feature.tickers.presentation.ticker.TickerState
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.ui.theme.CryptoAppTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
@@ -22,13 +23,13 @@ class TickerContainerTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun tickerContainer_showsLoadingCallsLoadAndBackButton() {
-        var onLoadCalled = false
+    fun tickerContainer_showsLoadingAndBackButton() {
         var backClicked = false
         val state = MutableStateFlow<TickerState>(TickerState.Loading)
         val controller = TickerController(
             state = state,
-            onLoadContent = { onLoadCalled = true }
+            quoteCurrency = MutableStateFlow(QuoteCurrency.BRL),
+            refreshIfNeeded = { },
         )
 
         composeRule.setContent {
@@ -46,7 +47,6 @@ class TickerContainerTest {
         composeRule.onNodeWithContentDescription("Back").assertIsDisplayed().performClick()
         composeRule.onNodeWithTag("ticker_loading").assertIsDisplayed()
 
-        assertEquals(true, onLoadCalled)
         assertEquals(true, backClicked)
     }
 
@@ -55,7 +55,8 @@ class TickerContainerTest {
         val loadingState = MutableStateFlow<TickerState>(TickerState.Error("An error occurred"))
         val controller = TickerController(
             state = loadingState,
-            onLoadContent = { }
+            quoteCurrency = MutableStateFlow(QuoteCurrency.BRL),
+            refreshIfNeeded = { },
         )
         composeRule.setContent {
             CryptoAppTheme(darkTheme = false, dynamicColor = false) {

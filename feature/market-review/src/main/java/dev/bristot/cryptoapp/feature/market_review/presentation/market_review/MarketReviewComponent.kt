@@ -43,6 +43,7 @@ fun MarketReviewComponent(
     textColor: Color,
     secondaryTextColor: Color,
     stats: List<MarketStats>,
+    quoteCurrency: String = "USD",
 ) {
     val containerColor = if (isDarkMode) CryptoTheme.CardDark.copy(alpha = 0.25f) else Color(0xFFF8FAFC)
     val borderColor = if (isDarkMode) Color(0xFF334155) else Color(0xFFCBD5E1)
@@ -60,7 +61,7 @@ fun MarketReviewComponent(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            MarketReviewHeader(textColor, secondaryTextColor)
+            MarketReviewHeader(textColor, secondaryTextColor, quoteCurrency)
 
             if (stats.isNotEmpty()) {
                 Row(
@@ -83,7 +84,11 @@ fun MarketReviewComponent(
 }
 
 @Composable
-private fun MarketReviewHeader(textColor: Color, secondaryTextColor: Color) {
+private fun MarketReviewHeader(
+    textColor: Color,
+    secondaryTextColor: Color,
+    quoteCurrency: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().testTag("market_review_header"),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -110,7 +115,7 @@ private fun MarketReviewHeader(textColor: Color, secondaryTextColor: Color) {
                     color = textColor,
                 )
                 Text(
-                    text = stringResource(R.string.market_review_subtitle),
+                    text = stringResource(R.string.market_review_subtitle, quoteCurrency),
                     style = MaterialTheme.typography.bodySmall,
                     color = secondaryTextColor,
                 )

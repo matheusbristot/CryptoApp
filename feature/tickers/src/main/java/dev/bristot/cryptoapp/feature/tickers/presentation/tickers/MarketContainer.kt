@@ -46,6 +46,8 @@ import dev.bristot.cryptoapp.ui.theme.AppTextColors
 import dev.bristot.cryptoapp.ui.theme.rememberAppTextColors
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
+import dev.bristot.cryptoapp.feature.market_review.api.MarketOverviewQuoteData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @TraceRecomposition
@@ -54,11 +56,16 @@ fun MarketContainer(
     tickersController: TickersController,
     recentTickersController: RecentTickersController,
     floatingButtonController: FloatingButtonController,
-    marketOverviewHeaderContent: @Composable (isDarkMode: Boolean, textColors: AppTextColors) -> Unit,
+    marketOverviewHeaderContent: @Composable (
+        isDarkMode: Boolean,
+        textColors: AppTextColors,
+        quoteData: MarketOverviewQuoteData?,
+    ) -> Unit,
     sortController: SortController,
     onOpenRecentTickers: () -> Unit,
     onSelectTicker: (Ticker) -> Unit,
     valueFormatter: CryptoValueFormatter,
+    quoteCurrency: QuoteCurrency = QuoteCurrency.BRL,
 ) {
     val isDarkMode = isSystemInDarkTheme()
     val textColors = rememberAppTextColors(isDarkMode)
@@ -75,14 +82,17 @@ fun MarketContainer(
         initialFirstVisibleItemScrollOffset = indexes.second
     )
 
-    val contentData = remember(tickersState, recentTickersState) {
+    val contentData = remember(tickersState, recentTickersState, quoteCurrency) {
 
         var tickers = emptyList<Ticker>()
         if ((tickersState as? TickersState.Success)?.tickers != null) {
             tickers = (tickersState as TickersState.Success).tickers
+                .filter { quoteCurrency in it.prices }
         }
 
-        val recentTickers = recentTickersState.tickers.take(RECENT_TICKERS_PREVIEW_LIMIT)
+        val recentTickers = recentTickersState.tickers
+            .filter { quoteCurrency in it.prices }
+            .take(RECENT_TICKERS_PREVIEW_LIMIT)
         val recentTickerIds = recentTickers.map { ticker -> ticker.id }.toSet()
         val listedTickers = tickers.filterNot { ticker -> ticker.id in recentTickerIds }
 
@@ -92,6 +102,18 @@ fun MarketContainer(
             isTickersLoading = tickersState is TickersState.Initial || tickersState is TickersState.Loading,
             tickerError = (tickersState as? TickersState.Error)?.error,
         )
+    }
+
+    val marketOverviewQuoteData = remember(tickersState, quoteCurrency) {
+        (tickersState as? TickersState.Success)?.tickers
+            ?.mapNotNull { ticker -> ticker.prices[quoteCurrency] }
+            ?.let { quotes ->
+                MarketOverviewQuoteData(
+                    currencyCode = quoteCurrency.name,
+                    marketCap = quotes.sumOf { quote -> quote.marketCap.marketCap },
+                    volume24h = quotes.sumOf { quote -> quote.volume24h },
+                )
+            }
     }
 
     val currentContentData by rememberUpdatedState(contentData)
@@ -170,6 +192,8 @@ fun MarketContainer(
             onOpenRecentTickers,
             onSelectTicker,
             valueFormatter,
+            quoteCurrency,
+            marketOverviewQuoteData,
         )
     }
 }
@@ -183,10 +207,16 @@ private fun Content(
     contentData: MarketContainerData.HasContent,
     isDarkMode: Boolean,
     textColors: AppTextColors,
-    marketOverviewHeaderContent: @Composable (isDarkMode: Boolean, textColors: AppTextColors) -> Unit,
+    marketOverviewHeaderContent: @Composable (
+        isDarkMode: Boolean,
+        textColors: AppTextColors,
+        quoteData: MarketOverviewQuoteData?,
+    ) -> Unit,
     onOpenRecentTickers: () -> Unit,
     onSelectTicker: (Ticker) -> Unit,
     valueFormatter: CryptoValueFormatter,
+    quoteCurrency: QuoteCurrency,
+    marketOverviewQuoteData: MarketOverviewQuoteData?,
 ) {
 
     LazyColumn(
@@ -203,7 +233,7 @@ private fun Content(
         ) { index ->
             when (contentData.extractType(index)) {
                 MarketContainerData.HasContent.ContentType.HEADER_VIEW -> {
-                    marketOverviewHeaderContent(isDarkMode, textColors)
+                    marketOverviewHeaderContent(isDarkMode, textColors, marketOverviewQuoteData)
                     if (contentData.recentTickersData.isNotEmpty() || contentData.tickersData.isNotEmpty()) Spacer(
                         modifier = Modifier.height(
                             24.dp
@@ -219,6 +249,7 @@ private fun Content(
                         onTitleClick = onOpenRecentTickers,
                         onTickerClick = onSelectTicker,
                         valueFormatter = valueFormatter,
+                        quoteCurrency = quoteCurrency,
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                 }
@@ -251,6 +282,7 @@ private fun Content(
                         ticker = ticker,
                         valueFormatter = valueFormatter,
                         onClick = { _, _ -> onSelectTicker(ticker) },
+                        quoteCurrency = quoteCurrency,
                     )
                     if (index < contentData.size - 1) {
                         Spacer(modifier = Modifier.height(12.dp))

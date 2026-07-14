@@ -8,5 +8,6 @@ interface MarketOverviewHeaderRenderer {
     fun Render(
         isDarkMode: Boolean,
         textColors: AppTextColors,
+        quoteData: MarketOverviewQuoteData?,
     )
 }

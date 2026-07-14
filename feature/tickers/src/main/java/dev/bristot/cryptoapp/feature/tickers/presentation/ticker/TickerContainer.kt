@@ -23,7 +23,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.bristot.cryptoapp.feature.tickers.R
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
+import dev.bristot.cryptoapp.feature.tickers.domain.entity.Currency
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.ui.theme.CryptoTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,10 +48,10 @@ fun TickerContainer(
     tickerController: TickerController,
     valueFormatter: CryptoValueFormatter,
     showBackButton: Boolean = true,
-    onBackButtonClick: () -> Unit
+    onBackButtonClick: () -> Unit,
+    quoteCurrency: QuoteCurrency = QuoteCurrency.BRL,
 ) {
     val state by tickerController.state.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) { tickerController.onLoadContent() }
 
     Scaffold(modifier = modifier.fillMaxSize(), topBar = {
         TopAppBar(title = {
@@ -65,7 +66,24 @@ fun TickerContainer(
             is TickerState.Initial -> StatusContent(true, "", Modifier.padding(padding))
             is TickerState.Loading -> StatusContent(true, "", Modifier.padding(padding))
             is TickerState.Error -> StatusContent(false, current.error, Modifier.padding(padding))
-            is TickerState.Success -> TickerDetails(current.ticker, valueFormatter, Modifier.padding(padding))
+            is TickerState.Success -> {
+                val quote = current.ticker.prices[quoteCurrency]
+                if (quote == null) {
+                    StatusContent(
+                        loading = false,
+                        error = stringResource(R.string.ticker_quote_unavailable, quoteCurrency.name),
+                        modifier = Modifier.padding(padding),
+                    )
+                } else {
+                    TickerDetails(
+                        ticker = current.ticker,
+                        quote = quote,
+                        valueFormatter = valueFormatter,
+                        quoteCurrency = quoteCurrency,
+                        modifier = Modifier.padding(padding),
+                    )
+                }
+            }
         }
     }
 }
@@ -81,10 +99,13 @@ private fun StatusContent(loading: Boolean, error: String, modifier: Modifier) {
 }
 
 @Composable
-private fun TickerDetails(ticker: Ticker, valueFormatter: CryptoValueFormatter, modifier: Modifier = Modifier) {
-    val quoteEntry = ticker.prices.entries.first()
-    val symbol = quoteEntry.key
-    val quote = quoteEntry.value
+private fun TickerDetails(
+    ticker: Ticker,
+    quote: Currency,
+    valueFormatter: CryptoValueFormatter,
+    quoteCurrency: QuoteCurrency,
+    modifier: Modifier = Modifier,
+) {
     val changes = quote.percentChangeInterval.run {
         listOf("15m" to p15m, "30m" to p30m, "1h" to p1h, "6h" to p6h, "12h" to p12h,
             "24h" to p24h, "7d" to p7d, "30d" to p30d, "1y" to p1y)
@@ -103,7 +124,7 @@ private fun TickerDetails(ticker: Ticker, valueFormatter: CryptoValueFormatter, 
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(stringResource(R.string.ticker_price), style = MaterialTheme.typography.labelLarge)
-                Text(valueFormatter.currency(quote.price, symbol.name), style = MaterialTheme.typography.headlineMedium,
+                Text(valueFormatter.currency(quote.price, quoteCurrency.name), style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold, modifier = Modifier.testTag("ticker_price"))
                 ChangeText("24h", quote.percentChangeInterval.p24h, valueFormatter)
             }
@@ -115,18 +136,36 @@ private fun TickerDetails(ticker: Ticker, valueFormatter: CryptoValueFormatter, 
             }
         }
         item { SectionTitle(stringResource(R.string.ticker_market)) }
-        item { MetricRow(stringResource(R.string.ticker_market_cap), valueFormatter.currency(quote.marketCap.marketCap, symbol.name)) }
+        item { MetricRow(stringResource(R.string.ticker_market_cap), valueFormatter.currency(quote.marketCap.marketCap, quoteCurrency.name)) }
         item { MetricRow(stringResource(R.string.ticker_market_cap_change), valueFormatter.percentage(quote.marketCap.lastChangeTwentyFourHours)) }
-        item { MetricRow(stringResource(R.string.ticker_volume), valueFormatter.currency(quote.volume24h, symbol.name)) }
+        item { MetricRow(stringResource(R.string.ticker_volume), valueFormatter.currency(quote.volume24h, quoteCurrency.name)) }
         item { MetricRow(stringResource(R.string.ticker_volume_change), valueFormatter.percentage(quote.volume24hChange24h)) }
         item { SectionTitle(stringResource(R.string.ticker_supply)) }
         item { MetricRow(stringResource(R.string.ticker_total_supply), valueFormatter.integer(ticker.totalSupply)) }
         item { MetricRow(stringResource(R.string.ticker_max_supply), valueFormatter.integer(ticker.maxSupply)) }
         item { MetricRow(stringResource(R.string.ticker_beta), valueFormatter.decimal(ticker.betaValue)) }
         item { SectionTitle(stringResource(R.string.ticker_ath)) }
-        item { MetricRow(stringResource(R.string.ticker_ath), valueFormatter.currency(quote.allTimeHigh.price, symbol.name)) }
-        item { MetricRow(stringResource(R.string.ticker_distance_ath), valueFormatter.percentage(quote.allTimeHigh.percentage)) }
-        item { MetricRow(stringResource(R.string.ticker_ath_date), valueFormatter.date(quote.allTimeHigh.date)) }
+        item {
+            MetricRow(
+                stringResource(R.string.ticker_ath),
+                quote.allTimeHigh.price?.let { valueFormatter.currency(it, quoteCurrency.name) }
+                    ?: stringResource(R.string.ticker_not_available),
+            )
+        }
+        item {
+            MetricRow(
+                stringResource(R.string.ticker_distance_ath),
+                quote.allTimeHigh.percentage?.let(valueFormatter::percentage)
+                    ?: stringResource(R.string.ticker_not_available),
+            )
+        }
+        item {
+            MetricRow(
+                stringResource(R.string.ticker_ath_date),
+                quote.allTimeHigh.date?.let(valueFormatter::date)
+                    ?: stringResource(R.string.ticker_not_available),
+            )
+        }
     }
 }
 

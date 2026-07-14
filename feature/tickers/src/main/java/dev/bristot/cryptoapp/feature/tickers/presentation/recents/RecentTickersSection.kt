@@ -32,6 +32,7 @@ import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickerTile
 import dev.bristot.cryptoapp.ui.theme.AppTextColors
 import dev.bristot.cryptoapp.ui.theme.CryptoTheme
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 
 const val RECENT_TICKERS_PREVIEW_LIMIT = 3
 
@@ -44,8 +45,9 @@ fun RecentTickersSection(
     onTickerClick: (Ticker) -> Unit,
     valueFormatter: CryptoValueFormatter,
     modifier: Modifier = Modifier,
+    quoteCurrency: QuoteCurrency = QuoteCurrency.BRL,
 ) {
-    val visibleTickers = tickers.take(RECENT_TICKERS_PREVIEW_LIMIT)
+    val visibleTickers = tickers.filter { quoteCurrency in it.prices }.take(RECENT_TICKERS_PREVIEW_LIMIT)
     if (visibleTickers.isEmpty()) return
 
     val containerColor = if (isDarkMode) CryptoTheme.CardDark.copy(alpha = 0.25f) else Color(0xFFF8FAFC)
@@ -107,6 +109,7 @@ fun RecentTickersSection(
                     ticker = ticker,
                     valueFormatter = valueFormatter,
                     onClick = { _, _ -> onTickerClick(ticker) },
+                    quoteCurrency = quoteCurrency,
                 )
                 if (index < visibleTickers.lastIndex) {
                     Spacer(modifier = Modifier.height(2.dp))

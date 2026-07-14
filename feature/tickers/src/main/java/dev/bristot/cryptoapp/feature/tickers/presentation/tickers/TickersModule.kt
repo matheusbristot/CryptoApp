@@ -1,6 +1,9 @@
 package dev.bristot.cryptoapp.feature.tickers.presentation.tickers
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dagger.Module
 import dagger.Provides
@@ -12,8 +15,10 @@ import dev.bristot.cryptoapp.feature.market_review.api.MarketOverviewRendererIds
 import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
+import dev.bristot.cryptoapp.navigation.LocalNavigationHostActive
 import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersController
 import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersViewModel
+import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonManager
 import dev.bristot.cryptoapp.ui.sort.SortController
@@ -30,8 +35,10 @@ object TickersModule {
         navigationData: NavigationData,
         marketOverviewHeaderRegistry: MarketOverviewHeaderRegistry,
         valueFormatter: CryptoValueFormatter,
+        settingsRepository: SettingsRepository,
     ): EntryProviderInstaller = {
         entry<CryptoAppDestination.Tickers> {
+            val isActive = LocalNavigationHostActive.current
             val tickersViewModel = hiltViewModel<TickersViewModel>()
             val floatingButtonManager = hiltViewModel<FloatingButtonManager>()
             val sortViewModel = hiltViewModel<SortViewModel>()
@@ -41,8 +48,18 @@ object TickersModule {
             val tickersController = remember(tickersViewModel) {
                 TickersController(
                     state = tickersViewModel.state,
+                    quoteCurrency = tickersViewModel.quoteCurrency,
+                    refreshIfNeeded = tickersViewModel::refreshIfNeeded,
                     sortBy = tickersViewModel::sortBy,
                 )
+            }
+            val quoteCurrency by tickersController.quoteCurrency.collectAsStateWithLifecycle()
+            LaunchedEffect(isActive, tickersController) {
+                if (isActive) {
+                    settingsRepository.settings.collect {
+                        tickersController.refreshIfNeeded()
+                    }
+                }
             }
             val recentTickersController = remember(recentTickersViewModel) {
                 RecentTickersController(
@@ -65,10 +82,11 @@ object TickersModule {
                     onHandleVisibility = floatingButtonManager::onHandleVisibility,
                     onSaveScroll = floatingButtonManager::onSaveScroll,
                 ),
-                marketOverviewHeaderContent = { isDarkMode, textColors ->
+                marketOverviewHeaderContent = { isDarkMode, textColors, quoteData ->
                     marketReviewHeaderRenderer.Render(
                         isDarkMode = isDarkMode,
                         textColors = textColors,
+                        quoteData = quoteData,
                     )
                 },
                 sortController = sortController,
@@ -85,6 +103,7 @@ object TickersModule {
                     )
                 },
                 valueFormatter = valueFormatter,
+                quoteCurrency = quoteCurrency,
             )
         }
     }

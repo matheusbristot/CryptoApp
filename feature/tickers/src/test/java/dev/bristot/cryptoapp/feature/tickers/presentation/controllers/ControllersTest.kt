@@ -2,6 +2,7 @@ package dev.bristot.cryptoapp.feature.tickers.presentation.controllers
 
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersController
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersState
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.ui.sort.SortController
 import dev.bristot.cryptoapp.ui.sort.SortOrder
 import dev.bristot.cryptoapp.ui.sort.SortState
@@ -16,16 +17,23 @@ class ControllersTest {
     @Test
     fun tickersController_keepsStateAndSortCallback() {
         var receivedSortState: SortState? = null
+        var refreshCount = 0
         val state = MutableStateFlow<TickersState>(TickersState.Initial)
+        val quoteCurrency = MutableStateFlow(QuoteCurrency.BRL)
 
         val controller = TickersController(
             state = state,
+            quoteCurrency = quoteCurrency,
+            refreshIfNeeded = { refreshCount++ },
             sortBy = { receivedSortState = it }
         )
 
+        controller.refreshIfNeeded()
         controller.sortBy(SortState(SortType.NAME, SortOrder.DESCENDING))
 
         assertSame(state, controller.state)
+        assertSame(quoteCurrency, controller.quoteCurrency)
+        assertEquals(1, refreshCount)
         assertEquals(SortState(SortType.NAME, SortOrder.DESCENDING), receivedSortState)
     }
 

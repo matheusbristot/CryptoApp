@@ -1,6 +1,6 @@
 <resources>
     <string name="market_review_title">Global Market</string>
-    <string name="market_review_subtitle">Market overview · USD</string>
+    <string name="market_review_subtitle">Market overview · %1$s</string>
     <string name="market_review_live">Live</string>
     <string name="market_review_change_positive">Positive 24-hour change</string>
     <string name="market_review_change_negative">Negative 24-hour change</string>

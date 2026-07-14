@@ -32,6 +32,7 @@ import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickerTile
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.ui.theme.rememberAppTextColors
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,8 +42,10 @@ fun RecentTickersContainer(
     onBackButtonClick: () -> Unit,
     onSelectTicker: (Ticker) -> Unit,
     valueFormatter: CryptoValueFormatter,
+    quoteCurrency: QuoteCurrency = QuoteCurrency.BRL,
 ) {
     val state by recentTickersController.state.collectAsStateWithLifecycle()
+    val visibleTickers = state.tickers.filter { quoteCurrency in it.prices }
     val isDarkMode = isSystemInDarkTheme()
     val textColors = rememberAppTextColors(isDarkMode)
 
@@ -70,7 +73,7 @@ fun RecentTickersContainer(
             )
         },
     ) { innerPadding: PaddingValues ->
-        if (state.tickers.isEmpty()) {
+        if (visibleTickers.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -108,7 +111,7 @@ fun RecentTickersContainer(
                     }
                 }
                 items(
-                    items = state.tickers,
+                    items = visibleTickers,
                     key = { ticker -> ticker.id },
                 ) { ticker ->
                     TickerTile(
@@ -121,6 +124,7 @@ fun RecentTickersContainer(
                             recentTickersController.addRecentTicker(ticker)
                             onSelectTicker(ticker)
                         },
+                        quoteCurrency = quoteCurrency,
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }

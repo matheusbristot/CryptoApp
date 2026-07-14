@@ -9,10 +9,11 @@ private const val baseTickersPath: String = "tickers"
 
 interface TickersRoutes {
     @GET(value = baseTickersPath)
-    suspend fun getTickersByQuotes(@Query(value = "quotes") quotes: List<String>): List<TickerResponse>
+    suspend fun getTickersByQuotes(@Query(value = "quotes") quotes: String): List<TickerResponse>
 
     @GET(value = "$baseTickersPath/{id}")
     suspend fun getTickerByQuotes(
-        @Path(value = "id") coinId: String, @Query(value = "quotes") quotes: List<String>
+        @Path(value = "id") coinId: String,
+        @Query(value = "quotes") quotes: String,
     ): TickerResponse
 }

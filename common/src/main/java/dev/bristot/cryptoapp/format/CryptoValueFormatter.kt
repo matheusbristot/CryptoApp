@@ -24,11 +24,21 @@ interface CryptoValueFormatter {
 class DefaultCryptoValueFormatter @Inject constructor() : CryptoValueFormatter {
     private val locale: Locale = Locale.getDefault()
 
-    override fun currency(value: Double, currencyCode: String): String =
-        NumberFormat.getCurrencyInstance(locale).apply {
-            currency = Currency.getInstance(currencyCode)
-            maximumFractionDigits = if (abs(value) < 1) 6 else 2
+    override fun currency(value: Double, currencyCode: String): String {
+        val fractionDigits = if (abs(value) < 1) 6 else 2
+        val currency = runCatching { Currency.getInstance(currencyCode) }.getOrNull()
+        if (currency == null) {
+            val formattedValue = NumberFormat.getNumberInstance(locale).apply {
+                minimumFractionDigits = fractionDigits
+                maximumFractionDigits = fractionDigits
+            }.format(value)
+            return "$currencyCode $formattedValue"
+        }
+        return NumberFormat.getCurrencyInstance(locale).apply {
+            this.currency = currency
+            maximumFractionDigits = fractionDigits
         }.format(value)
+    }
 
     override fun compactCurrency(value: Double, currencyCode: String): String {
         val (scaled, suffix) = when {

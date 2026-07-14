@@ -22,9 +22,11 @@ class TickersRepositoryImplTest {
         )
         val repository = TickersRepositoryImpl(tickersDataSource = dataSource)
 
-        val tickers = repository.getTickers(currencies = setOf(CurrencySymbol.BRL)).first()
+        val tickers = repository.getTickers(
+            currencies = setOf(CurrencySymbol.BRL, CurrencySymbol.BTC)
+        ).first()
 
-        assertEquals(listOf("BRL"), dataSource.requestedTickersCurrencies)
+        assertEquals(listOf("BRL", "BTC"), dataSource.requestedTickersCurrencies)
         assertEquals(
             listOf(
                 Ticker(
@@ -39,6 +41,7 @@ class TickersRepositoryImplTest {
                     lastUpdated = "2026-07-01T00:00:00Z",
                     prices = mapOf(
                         CurrencySymbol.BRL to expectedCurrency(price = 71420.0),
+                        CurrencySymbol.BTC to expectedCurrency(price = 1.0),
                     ),
                 )
             ),
@@ -93,6 +96,7 @@ class TickersRepositoryImplTest {
         lastUpdated = "2026-07-01T00:00:00Z",
         quotes = mapOf(
             "BRL" to currencyResponse(price = 71420.0),
+            "BTC" to currencyResponse(price = 1.0),
             "USD" to currencyResponse(price = 2500.0),
         ),
     )

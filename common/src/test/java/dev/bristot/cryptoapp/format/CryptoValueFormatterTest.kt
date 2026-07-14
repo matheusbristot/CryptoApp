@@ -25,6 +25,10 @@ class CryptoValueFormatterTest {
         assertEquals("\$1,234.50", formatter.currency(1_234.5, "USD"))
     }
 
+    @Test fun formatsNonIsoCryptoQuoteWithoutConvertingIt() {
+        assertEquals("BTC 0.123457", formatter.currency(0.1234567, "BTC"))
+    }
+
     @Test fun formatsCompactCurrencyAndSignedPercentage() {
         assertEquals("USD 1.25B", formatter.compactCurrency(1_250_000_000.0, "USD"))
         assertEquals("-2.50%", formatter.percentage(-2.5))

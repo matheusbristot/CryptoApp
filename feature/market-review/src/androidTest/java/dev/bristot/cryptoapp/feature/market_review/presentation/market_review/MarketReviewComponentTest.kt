@@ -39,6 +39,7 @@ class MarketReviewComponentTest {
                             isPositive = false,
                         ),
                     ),
+                    quoteCurrency = "BRL",
                 )
             }
         }
@@ -53,7 +54,7 @@ class MarketReviewComponentTest {
         composeRule.onNodeWithText("Live").assertIsDisplayed()
         composeRule.onNodeWithText("\$1,5M").assertIsDisplayed()
         composeRule.onNodeWithText("\$250000").assertIsDisplayed()
-        composeRule.onNodeWithText("Market overview · USD").assertIsDisplayed()
+        composeRule.onNodeWithText("Market overview · BRL").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Positive 24-hour change")
             .assertContentDescriptionEquals("Positive 24-hour change")
         composeRule.onNodeWithContentDescription("Negative 24-hour change")

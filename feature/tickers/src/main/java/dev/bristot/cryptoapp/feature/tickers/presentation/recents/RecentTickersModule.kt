@@ -1,6 +1,8 @@
 package dev.bristot.cryptoapp.feature.tickers.presentation.recents
 
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dagger.Module
 import dagger.Provides
@@ -11,6 +13,7 @@ import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
 import dev.bristot.cryptoapp.navigation.NavigationData
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
+import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -21,8 +24,10 @@ object RecentTickersModule {
     fun provideRecentTickersNavigationData(
         navigationData: NavigationData,
         valueFormatter: CryptoValueFormatter,
+        settingsRepository: SettingsRepository,
     ): EntryProviderInstaller = {
         entry<CryptoAppDestination.RecentTickers> {
+            val settings by settingsRepository.settings.collectAsStateWithLifecycle()
             val recentTickersViewModel = hiltViewModel<RecentTickersViewModel>()
             val recentTickersController = remember(recentTickersViewModel) {
                 RecentTickersController(
@@ -43,6 +48,7 @@ object RecentTickersModule {
                     )
                 },
                 valueFormatter = valueFormatter,
+                quoteCurrency = settings.selectedQuoteCurrency,
             )
         }
     }

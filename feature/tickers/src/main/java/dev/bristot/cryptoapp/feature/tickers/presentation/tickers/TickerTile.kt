@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.ui.theme.CryptoTheme
 
 @TraceRecomposition
@@ -41,8 +42,9 @@ fun TickerTile(
     ticker: Ticker,
     valueFormatter: CryptoValueFormatter,
     onClick: (id: String, name: String) -> Unit,
+    quoteCurrency: QuoteCurrency = QuoteCurrency.BRL,
 ) {
-    val (currencySymbol, quote) = ticker.prices.entries.first()
+    val quote = ticker.prices[quoteCurrency] ?: return
     val change = quote.percentChangeInterval.p24h
     val positive = change >= 0
     val changeColor = if (positive) CryptoTheme.Positive else CryptoTheme.Negative
@@ -86,7 +88,7 @@ fun TickerTile(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        "${ticker.symbol} · ${currencySymbol.name}",
+                        "${ticker.symbol} · ${quoteCurrency.name}",
                         color = secondaryTextColor,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -110,14 +112,14 @@ fun TickerTile(
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("Preço", color = secondaryTextColor, style = MaterialTheme.typography.labelSmall)
                     Text(
-                        valueFormatter.currency(quote.price, currencySymbol.name),
+                        valueFormatter.currency(quote.price, quoteCurrency.name),
                         color = textColor,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.testTag("ticker_price"),
                     )
                     Text(
-                        "Market cap ${valueFormatter.compactCurrency(quote.marketCap.marketCap, currencySymbol.name)}",
+                        "Market cap ${valueFormatter.compactCurrency(quote.marketCap.marketCap, quoteCurrency.name)}",
                         color = secondaryTextColor,
                         style = MaterialTheme.typography.labelSmall,
                     )

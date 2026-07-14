@@ -8,6 +8,9 @@ import dev.bristot.cryptoapp.feature.tickers.domain.entity.MarketCap
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.PercentChangeInterval
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import dev.bristot.cryptoapp.feature.tickers.domain.repository.TickersRepository
+import dev.bristot.cryptoapp.feature.settings.api.AppSettings
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
+import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
 import dev.bristot.cryptoapp.testutils.MainDispatcherRule
 import dev.bristot.cryptoapp.testutils.clearForTest
 import dev.bristot.cryptoapp.ui.sort.SortOrder
@@ -17,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -29,7 +33,7 @@ class TickersViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun init_emitsSuccessStateWithLoadedTickers() = runTest {
+    fun refreshIfNeeded_emitsSuccessStateWithLoadedTickers() = runTest {
         val repository = FakeTickersRepository(
             tickers = listOf(
                 ticker(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 2),
@@ -40,8 +44,10 @@ class TickersViewModelTest {
             tickersRepository = repository,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
             sortTemplate = TickerSortTemplate(),
+            settingsRepository = FakeSettingsRepository(),
         )
 
+        viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
 
         try {
@@ -70,8 +76,10 @@ class TickersViewModelTest {
             tickersRepository = repository,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
             sortTemplate = TickerSortTemplate(),
+            settingsRepository = FakeSettingsRepository(),
         )
 
+        viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
         viewModel.state.first { it is TickersState.Success }
 
@@ -83,6 +91,72 @@ class TickersViewModelTest {
                 it is TickersState.Success && it.tickers.map { ticker -> ticker.id } == listOf("a", "b")
             } as TickersState.Success
             assertEquals(listOf("a", "b"), successState.tickers.map { it.id })
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
+    fun changingSettings_waitsUntilNextVisibilityRefresh() = runTest {
+        val repository = FakeTickersRepository(
+            tickers = listOf(ticker(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1)),
+        )
+        val settingsRepository = FakeSettingsRepository()
+        val viewModel = TickersViewModel(
+            tickersRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            sortTemplate = TickerSortTemplate(),
+            settingsRepository = settingsRepository,
+        )
+
+        viewModel.refreshIfNeeded()
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        settingsRepository.replace(
+            AppSettings(
+                requestedQuoteCurrencies = setOf(QuoteCurrency.BRL, QuoteCurrency.USD),
+                selectedQuoteCurrency = QuoteCurrency.USD,
+            )
+        )
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            assertEquals(listOf(setOf(CurrencySymbol.BRL)), repository.requests)
+
+            viewModel.refreshIfNeeded()
+            mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(
+                listOf(setOf(CurrencySymbol.BRL), setOf(CurrencySymbol.BRL, CurrencySymbol.USD)),
+                repository.requests,
+            )
+            assertEquals(QuoteCurrency.USD, viewModel.quoteCurrency.value)
+            val successState = viewModel.state.first { it is TickersState.Success }
+                as TickersState.Success
+            assertEquals(emptyList<Ticker>(), successState.tickers)
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
+    fun reopeningWithoutSettingsChanges_reusesCurrentResult() = runTest {
+        val repository = FakeTickersRepository(
+            tickers = listOf(ticker(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1)),
+        )
+        val viewModel = TickersViewModel(
+            tickersRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            sortTemplate = TickerSortTemplate(),
+            settingsRepository = FakeSettingsRepository(),
+        )
+
+        viewModel.refreshIfNeeded()
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        viewModel.refreshIfNeeded()
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            assertEquals(listOf(setOf(CurrencySymbol.BRL)), repository.requests)
         } finally {
             viewModel.clearForTest()
         }
@@ -130,8 +204,26 @@ class TickersViewModelTest {
     private class FakeTickersRepository(
         private val tickers: List<Ticker>,
     ) : TickersRepository {
-        override suspend fun getTickers(currencies: Set<CurrencySymbol>): Flow<List<Ticker>> = flowOf(tickers)
+        val requests = mutableListOf<Set<CurrencySymbol>>()
+
+        override suspend fun getTickers(currencies: Set<CurrencySymbol>): Flow<List<Ticker>> {
+            requests += currencies
+            return flowOf(tickers)
+        }
         override suspend fun getTicker(coinId: String, currencies: Set<CurrencySymbol>): Flow<Ticker> = flowOf(tickers.first())
+    }
+
+    private class FakeSettingsRepository : SettingsRepository {
+        private val mutableSettings = MutableStateFlow(AppSettings())
+        override val settings = mutableSettings
+
+        fun replace(settings: AppSettings) {
+            mutableSettings.value = settings
+        }
+
+        override suspend fun setQuoteEnabled(currency: QuoteCurrency, enabled: Boolean) = Unit
+
+        override suspend fun selectQuoteCurrency(currency: QuoteCurrency) = Unit
     }
 
     private class TestDispatcherProvider(

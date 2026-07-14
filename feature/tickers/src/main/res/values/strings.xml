@@ -14,6 +14,8 @@
     <string name="ticker_ath">All-time high</string>
     <string name="ticker_distance_ath">Distance from ATH</string>
     <string name="ticker_ath_date">ATH date</string>
+    <string name="ticker_not_available">Not available</string>
+    <string name="ticker_quote_unavailable">Quote %1$s is not available for this ticker</string>
     <string name="ticker_updated">Updated %1$s</string>
     <string name="recent_tickers_title">Recents</string>
     <string name="recent_tickers_subtitle">Acessados recentemente</string>

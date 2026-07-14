@@ -28,9 +28,9 @@ class TickersRemoteDataSourceImplTest {
             tickersRoutes = routes,
         )
 
-        val result = dataSource.getTickers(currencies = listOf("BRL")).first()
+        val result = dataSource.getTickers(currencies = listOf("BRL", "BTC")).first()
 
-        assertEquals(listOf("BRL"), routes.requestedTickersQuotes)
+        assertEquals("BRL,BTC", routes.requestedTickersQuotes)
         assertEquals(response, result)
     }
 
@@ -44,10 +44,13 @@ class TickersRemoteDataSourceImplTest {
             tickersRoutes = routes,
         )
 
-        val result = dataSource.getTicker(coinId = "eth-ethereum", currencies = listOf("USD")).first()
+        val result = dataSource.getTicker(
+            coinId = "eth-ethereum",
+            currencies = listOf("USD", "BTC"),
+        ).first()
 
         assertEquals("eth-ethereum", routes.requestedTickerCoinId)
-        assertEquals(listOf("USD"), routes.requestedTickerQuotes)
+        assertEquals("USD,BTC", routes.requestedTickerQuotes)
         assertEquals(response, result)
     }
 
@@ -75,20 +78,20 @@ class TickersRemoteDataSourceImplTest {
         private val ticker: TickerResponse = tickerResponse(),
         private val failure: IllegalStateException? = null,
     ) : TickersRoutes {
-        var requestedTickersQuotes: List<String> = emptyList()
+        var requestedTickersQuotes: String = ""
             private set
         var requestedTickerCoinId: String = ""
             private set
-        var requestedTickerQuotes: List<String> = emptyList()
+        var requestedTickerQuotes: String = ""
             private set
 
-        override suspend fun getTickersByQuotes(quotes: List<String>): List<TickerResponse> {
+        override suspend fun getTickersByQuotes(quotes: String): List<TickerResponse> {
             failure?.let { throw it }
             requestedTickersQuotes = quotes
             return tickers
         }
 
-        override suspend fun getTickerByQuotes(coinId: String, quotes: List<String>): TickerResponse {
+        override suspend fun getTickerByQuotes(coinId: String, quotes: String): TickerResponse {
             failure?.let { throw it }
             requestedTickerCoinId = coinId
             requestedTickerQuotes = quotes

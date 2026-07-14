@@ -19,7 +19,7 @@ class CurrencyResponse(
     @SerialName("percent_change_7d") val percentChange7d: Double,
     @SerialName("percent_change_30d") val percentChange30d: Double,
     @SerialName("percent_change_1y") val percentChange1y: Double,
-    @SerialName("ath_price") val athPrice: Double,
-    @SerialName("ath_date") val athDate: String,
-    @SerialName("percent_from_price_ath") val percentFromPriceAth: Double
+    @SerialName("ath_price") val athPrice: Double? = null,
+    @SerialName("ath_date") val athDate: String? = null,
+    @SerialName("percent_from_price_ath") val percentFromPriceAth: Double? = null,
 )

@@ -15,6 +15,8 @@ import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersS
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.MarketContainer
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersController
 import dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersState
+import dev.bristot.cryptoapp.feature.market_review.api.MarketOverviewQuoteData
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.ui.theme.CryptoAppTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
@@ -35,6 +37,7 @@ class MarketContainerTest {
         val xrp = ticker(id = "xrp", name = "XRP", symbol = "XRP", rank = 5)
         var openRecentsClicked = false
         var selectedTicker: Ticker? = null
+        var overviewQuoteData: MarketOverviewQuoteData? = null
 
         composeRule.setContent {
             CryptoAppTheme(darkTheme = false, dynamicColor = false) {
@@ -45,6 +48,8 @@ class MarketContainerTest {
                                 tickers = listOf(bitcoin, ethereum, solana, cardano, xrp),
                             )
                         ),
+                        quoteCurrency = MutableStateFlow(QuoteCurrency.BRL),
+                        refreshIfNeeded = { },
                         sortBy = { },
                     ),
                     recentTickersController = RecentTickersController(
@@ -56,7 +61,10 @@ class MarketContainerTest {
                         addRecentTicker = { },
                     ),
                     floatingButtonController = hiddenFloatingButtonController(),
-                    marketOverviewHeaderContent = { _, _ -> Text("Market overview") },
+                    marketOverviewHeaderContent = { _, _, quoteData ->
+                        overviewQuoteData = quoteData
+                        Text("Market overview")
+                    },
                     sortController = defaultSortController(),
                     onOpenRecentTickers = {
                         openRecentsClicked = true
@@ -80,6 +88,9 @@ class MarketContainerTest {
 
         assertEquals(true, openRecentsClicked)
         assertEquals(bitcoin, selectedTicker)
+        assertEquals("BRL", overviewQuoteData?.currencyCode)
+        assertEquals(5_000.0, overviewQuoteData?.marketCap)
+        assertEquals(500.0, overviewQuoteData?.volume24h)
     }
 
     @Test
@@ -91,6 +102,8 @@ class MarketContainerTest {
                 MarketContainer(
                     tickersController = TickersController(
                         state = MutableStateFlow(TickersState.Success(tickers = listOf(bitcoin))),
+                        quoteCurrency = MutableStateFlow(QuoteCurrency.BRL),
+                        refreshIfNeeded = { },
                         sortBy = { },
                     ),
                     recentTickersController = RecentTickersController(
@@ -98,7 +111,7 @@ class MarketContainerTest {
                         addRecentTicker = { },
                     ),
                     floatingButtonController = hiddenFloatingButtonController(),
-                    marketOverviewHeaderContent = { _, _ -> Text("Market overview") },
+                    marketOverviewHeaderContent = { _, _, _ -> Text("Market overview") },
                     sortController = defaultSortController(),
                     onOpenRecentTickers = { },
                     onSelectTicker = { },

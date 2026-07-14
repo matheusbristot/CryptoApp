@@ -10,8 +10,8 @@ import dev.bristot.cryptoapp.feature.tickers.domain.entity.PercentChangeInterval
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 
 fun TickerResponse.toTicker(currenciesOf: Set<CurrencySymbol>): Ticker {
-    return currenciesOf.fold(initial = emptyMap<CurrencySymbol, Currency>()) { storage, symbol ->
-        val quote = quotes.getValue(key = symbol.name)
+    return currenciesOf.mapNotNull { symbol ->
+        val quote = quotes[symbol.name] ?: return@mapNotNull null
         val percentage = buildPercentage(quote = quote)
         val allTimeHigh = buildAllTimeHigh(quote = quote)
         val marketCap = buildMarketCap(quote = quote)
@@ -23,8 +23,8 @@ fun TickerResponse.toTicker(currenciesOf: Set<CurrencySymbol>): Ticker {
             percentChangeInterval = percentage,
             allTimeHigh = allTimeHigh
         )
-        storage + (symbol to currency)
-    }.let { prices ->
+        symbol to currency
+    }.toMap().let { prices ->
         Ticker(
             id = id,
             name = name,
