@@ -9,6 +9,7 @@ import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListLoading
 import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListTile
 import dev.bristot.cryptoapp.ui.theme.CryptoAppTheme
+import dev.bristot.cryptoapp.format.DefaultCryptoValueFormatter
 import org.junit.Rule
 import org.junit.Test
 
@@ -33,6 +34,7 @@ class ComposeComponentsTest {
         composeRule.setContent {
             CryptoAppTheme(darkTheme = false, dynamicColor = false) {
                 CoinListTile(
+                    valueFormatter = DefaultCryptoValueFormatter(),
                     coin = Coin(
                         id = "btc",
                         name = "Bitcoin",
@@ -48,7 +50,7 @@ class ComposeComponentsTest {
 
         composeRule.onNodeWithTag("coin_tile_btc").assertIsDisplayed()
         composeRule.onNodeWithText("Bitcoin").assertIsDisplayed()
-        composeRule.onNodeWithText("BTC").assertIsDisplayed()
+        composeRule.onNodeWithText("BTC", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("B").assertIsDisplayed()
     }
 }

@@ -12,43 +12,44 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.CoinListState
-import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.CoinListViewModel
 import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinList
 import dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListLoading
 import dev.bristot.cryptoapp.ui.sort.SortComponent
-import dev.bristot.cryptoapp.ui.sort.SortViewModel
+import dev.bristot.cryptoapp.ui.sort.SortController
 import dev.bristot.cryptoapp.ui.widgets.floating_button.MoveToFirstTileFloatingButton
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoinListComponent(
+    controller: CoinListController,
+    sortController: SortController,
     modifier: Modifier = Modifier,
-    listViewModel: CoinListViewModel = hiltViewModel(),
-    sortViewModel: SortViewModel = hiltViewModel(),
-    internalScope: CoroutineScope = rememberCoroutineScope(),
+    valueFormatter: CryptoValueFormatter,
     lazyColumnRememberState: LazyListState = rememberLazyListState(),
 ) {
-    val state by listViewModel.state.collectAsStateWithLifecycle()
-    val sortState by sortViewModel.state.collectAsStateWithLifecycle()
+    val state by controller.state.collectAsStateWithLifecycle()
+    val sortState by sortController.state.collectAsStateWithLifecycle()
+    val internalScope = rememberCoroutineScope()
 
-    LaunchedEffect(lazyColumnRememberState) {
+    LaunchedEffect(lazyColumnRememberState, controller) {
         snapshotFlow { lazyColumnRememberState.firstVisibleItemIndex }.collect { firstVisibleItemIndex ->
-            if (state is CoinListState.SuccessWithUIProperties) {
-                listViewModel.handleToTop(shouldShow = firstVisibleItemIndex > 5)
-            }
+            controller.handleToTop(firstVisibleItemIndex > 5)
         }
     }
 
-    fun scrollToTop() {
-        internalScope.launch { lazyColumnRememberState.animateScrollToItem(index = 0) }
+    val scrollToTop = remember(internalScope, lazyColumnRememberState) {
+        {
+            internalScope.launch { lazyColumnRememberState.animateScrollToItem(index = 0) }
+            Unit
+        }
     }
 
     Scaffold(
@@ -62,15 +63,15 @@ fun CoinListComponent(
                             state = sortState,
                             onChangeType = { type ->
                                 val updated = sortState.copy(type = type)
-                                sortViewModel.changeType(type)
-                                listViewModel.sortBy(updated)
+                                sortController.changeType(type)
+                                controller.sortBy(updated)
                             },
                             onChangeOrder = { order ->
                                 val updated = sortState.copy(order = order)
-                                sortViewModel.changeOrder(order)
-                                listViewModel.sortBy(updated)
+                                sortController.changeOrder(order)
+                                controller.sortBy(updated)
                             },
-                            onScrollToFirstIndex = ::scrollToTop,
+                            onScrollToFirstIndex = scrollToTop,
                         )
                     }
                 },
@@ -81,7 +82,7 @@ fun CoinListComponent(
                 visible = (state as? CoinListState.SuccessWithUIProperties)?.toTopVisibility == true,
             ) {
                 MoveToFirstTileFloatingButton {
-                    listViewModel.handleToTop(shouldShow = false)
+                    controller.handleToTop(false)
                     scrollToTop()
                 }
             }
@@ -93,6 +94,7 @@ fun CoinListComponent(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 lazyColumnRememberState = lazyColumnRememberState,
                 coins = current.coins,
+                valueFormatter = valueFormatter,
             )
             is CoinListState.Error, CoinListState.Initial -> Unit
         }

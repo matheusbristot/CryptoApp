@@ -1,0 +1,4 @@
+<resources>
+    <string name="coin_price_unavailable">%1$s price unavailable</string>
+    <string name="coin_price_not_loaded">Price not loaded</string>
+</resources>

@@ -17,9 +17,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.ui.theme.PrimaryPurple
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
+import androidx.compose.ui.res.stringResource
+import dev.bristot.cryptoapp.feature.coins.R
 
 @Composable
-fun CoinListTile(modifier: Modifier = Modifier, coin: Coin) {
+fun CoinListTile(
+    modifier: Modifier = Modifier,
+    coin: Coin,
+    valueFormatter: CryptoValueFormatter,
+) {
     val dark = androidx.compose.foundation.isSystemInDarkTheme()
     Surface(
         modifier = modifier.fillMaxWidth().testTag("coin_tile_${coin.id}"),
@@ -34,7 +41,18 @@ fun CoinListTile(modifier: Modifier = Modifier, coin: Coin) {
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(coin.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(coin.symbol.uppercase(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val quoteText = coin.quote?.let { quote ->
+                    quote.price?.let { price ->
+                        valueFormatter.currency(price, quote.currency.name)
+                    } ?: stringResource(R.string.coin_price_unavailable, quote.currency.name)
+                } ?: stringResource(R.string.coin_price_not_loaded)
+                Text(
+                    "${coin.symbol.uppercase()} · $quoteText",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
             Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .6f)) {
                 Text("#${coin.rank}", modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)

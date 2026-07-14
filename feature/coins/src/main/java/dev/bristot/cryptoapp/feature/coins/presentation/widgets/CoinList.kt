@@ -27,9 +27,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.ui.theme.PrimaryPurple
+import dev.bristot.cryptoapp.format.CryptoValueFormatter
 
 @Composable
-fun CoinList(modifier: Modifier, lazyColumnRememberState: LazyListState, coins: List<Coin>) {
+fun CoinList(
+    modifier: Modifier,
+    lazyColumnRememberState: LazyListState,
+    coins: List<Coin>,
+    valueFormatter: CryptoValueFormatter,
+) {
     LazyColumn(
         state = lazyColumnRememberState,
         modifier = modifier.fillMaxSize(),
@@ -40,7 +46,7 @@ fun CoinList(modifier: Modifier, lazyColumnRememberState: LazyListState, coins: 
             Spacer(Modifier.height(24.dp))
         }
         itemsIndexed(items = coins, key = { _, coin -> coin.id }) { index, coin ->
-            CoinListTile(coin = coin)
+            CoinListTile(coin = coin, valueFormatter = valueFormatter)
             if (index < coins.lastIndex) Spacer(Modifier.height(12.dp))
         }
     }

@@ -3,7 +3,17 @@ package dev.bristot.cryptoapp.feature.coins.presentation.viewmodel
 import dev.bristot.cryptoapp.coroutines.dispatcher.DispatcherProvider
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
+import dev.bristot.cryptoapp.feature.coins.domain.usecase.GetQuotedCoinsUseCase
 import dev.bristot.cryptoapp.feature.coins.presentation.CoinSortTemplate
+import dev.bristot.cryptoapp.feature.settings.api.AppSettings
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
+import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
+import dev.bristot.cryptoapp.feature.tickers.domain.entity.AllTimeHigh
+import dev.bristot.cryptoapp.feature.tickers.domain.entity.Currency
+import dev.bristot.cryptoapp.feature.tickers.domain.entity.MarketCap
+import dev.bristot.cryptoapp.feature.tickers.domain.entity.PercentChangeInterval
+import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
+import dev.bristot.cryptoapp.feature.tickers.domain.repository.TickersRepository
 import dev.bristot.cryptoapp.ui.sort.SortOrder
 import dev.bristot.cryptoapp.ui.sort.SortState
 import dev.bristot.cryptoapp.ui.sort.SortType
@@ -15,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -28,7 +39,7 @@ class CoinListViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun init_emitsSuccessStateWithCoinsSortedByRank() = runTest {
+    fun refreshIfNeeded_emitsSuccessStateWithCoinsSortedByRank() = runTest {
         val repository = FakeCoinRepository(
             coins = listOf(
                 coin(id = "eth", name = "Ethereum", symbol = "ETH", rank = 2),
@@ -37,10 +48,15 @@ class CoinListViewModelTest {
         )
         val viewModel = CoinListViewModel(
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            coinRepository = repository,
+            getQuotedCoins = quotedCoinsUseCase(
+                coinRepository = repository,
+                tickersRepository = FakeTickersRepository(),
+            ),
             sortTemplate = CoinSortTemplate(),
+            settingsRepository = FakeSettingsRepository(),
         )
 
+        viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
 
         try {
@@ -106,16 +122,21 @@ class CoinListViewModelTest {
     }
 
     @Test
-    fun init_whenRepositoryFails_emitsErrorState() = runTest {
+    fun refreshIfNeeded_whenRepositoryFails_emitsErrorState() = runTest {
         val repository = FakeCoinRepository(
             error = IllegalStateException("boom")
         )
         val viewModel = CoinListViewModel(
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            coinRepository = repository,
+            getQuotedCoins = quotedCoinsUseCase(
+                coinRepository = repository,
+                tickersRepository = FakeTickersRepository(),
+            ),
             sortTemplate = CoinSortTemplate(),
+            settingsRepository = FakeSettingsRepository(),
         )
 
+        viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
 
         try {
@@ -135,11 +156,94 @@ class CoinListViewModelTest {
         val repository = FakeCoinRepository(coins = coins)
         val viewModel = CoinListViewModel(
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            coinRepository = repository,
+            getQuotedCoins = quotedCoinsUseCase(
+                coinRepository = repository,
+                tickersRepository = FakeTickersRepository(),
+            ),
             sortTemplate = CoinSortTemplate(),
+            settingsRepository = FakeSettingsRepository(),
         )
+        viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
         return viewModel
+    }
+
+    @Test
+    fun selectedQuoteWaitsUntilNextVisibilityRefresh() = runTest {
+        val settingsRepository = FakeSettingsRepository()
+        val tickersRepository = FakeTickersRepository(
+            tickerPrices = mapOf(
+                QuoteCurrency.BRL to 350_000.0,
+                QuoteCurrency.USD to 65_000.0,
+            )
+        )
+        val viewModel = CoinListViewModel(
+            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            getQuotedCoins = quotedCoinsUseCase(
+                coinRepository = FakeCoinRepository(
+                    coins = listOf(coin("btc", "Bitcoin", "BTC", 1))
+                ),
+                tickersRepository = tickersRepository,
+            ),
+            sortTemplate = CoinSortTemplate(),
+            settingsRepository = settingsRepository,
+        )
+
+        viewModel.refreshIfNeeded()
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        settingsRepository.replace(
+            AppSettings(
+                requestedQuoteCurrencies = setOf(QuoteCurrency.BRL, QuoteCurrency.USD),
+                selectedQuoteCurrency = QuoteCurrency.USD,
+            )
+        )
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            assertEquals(listOf(setOf(QuoteCurrency.BRL)), tickersRepository.requests)
+
+            viewModel.refreshIfNeeded()
+            mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = viewModel.state.first { current ->
+                current is CoinListState.SuccessWithUIProperties &&
+                    current.coins.first().quote?.currency == QuoteCurrency.USD
+            } as CoinListState.SuccessWithUIProperties
+            assertEquals(65_000.0, state.coins.first().quote?.price)
+            assertEquals(
+                listOf(setOf(QuoteCurrency.BRL), setOf(QuoteCurrency.USD)),
+                tickersRepository.requests,
+            )
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
+    fun reopeningWithoutQuoteChange_reusesCurrentResult() = runTest {
+        val tickersRepository = FakeTickersRepository()
+        val viewModel = CoinListViewModel(
+            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+            getQuotedCoins = quotedCoinsUseCase(
+                coinRepository = FakeCoinRepository(
+                    coins = listOf(coin("btc", "Bitcoin", "BTC", 1))
+                ),
+                tickersRepository = tickersRepository,
+            ),
+            sortTemplate = CoinSortTemplate(),
+            settingsRepository = FakeSettingsRepository(),
+        )
+
+        viewModel.refreshIfNeeded()
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        viewModel.refreshIfNeeded()
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            assertEquals(listOf(setOf(QuoteCurrency.BRL)), tickersRepository.requests)
+        } finally {
+            viewModel.clearForTest()
+        }
     }
 
     private fun coin(
@@ -157,6 +261,15 @@ class CoinListViewModelTest {
         type = "coin",
     )
 
+    private fun quotedCoinsUseCase(
+        coinRepository: CoinRepository,
+        tickersRepository: TickersRepository,
+    ) = GetQuotedCoinsUseCase(
+        dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+        coinRepository = coinRepository,
+        tickersRepository = tickersRepository,
+    )
+
     private class FakeCoinRepository(
         private val coins: List<Coin> = emptyList(),
         private val error: Throwable? = null,
@@ -164,6 +277,68 @@ class CoinListViewModelTest {
         override suspend fun getCoins(): Flow<List<Coin>> = error?.let { throwable ->
             flow { throw throwable }
         } ?: flowOf(coins)
+    }
+
+    private class FakeSettingsRepository : SettingsRepository {
+        private val mutableSettings = MutableStateFlow(AppSettings())
+        override val settings = mutableSettings
+
+        fun replace(value: AppSettings) {
+            mutableSettings.value = value
+        }
+
+        override suspend fun setQuoteEnabled(currency: QuoteCurrency, enabled: Boolean) = Unit
+        override suspend fun selectQuoteCurrency(currency: QuoteCurrency) = Unit
+    }
+
+    private class FakeTickersRepository(
+        private val tickerPrices: Map<QuoteCurrency, Double> = emptyMap(),
+    ) : TickersRepository {
+        val requests = mutableListOf<Set<QuoteCurrency>>()
+
+        override suspend fun getTickers(currencies: Set<QuoteCurrency>): Flow<List<Ticker>> {
+            requests += currencies
+            if (tickerPrices.isEmpty()) return flowOf(emptyList())
+            return flowOf(
+                listOf(
+                    Ticker(
+                        id = "btc",
+                        name = "Bitcoin",
+                        symbol = "BTC",
+                        rank = 1,
+                        prices = currencies.mapNotNull { currency ->
+                            tickerPrices[currency]?.let { price -> currency to tickerCurrency(price) }
+                        }.toMap(),
+                    )
+                )
+            )
+        }
+
+        override suspend fun getTicker(
+            coinId: String,
+            currencies: Set<QuoteCurrency>,
+        ): Flow<Ticker> = getTickers(currencies).let { flow ->
+            kotlinx.coroutines.flow.flow { emit(flow.first().first()) }
+        }
+
+        private fun tickerCurrency(price: Double) = Currency(
+            price = price,
+            volume24h = 1.0,
+            volume24hChange24h = 0.0,
+            marketCap = MarketCap(1.0, 0.0),
+            percentChangeInterval = PercentChangeInterval(
+                p15m = 0.0,
+                p30m = 0.0,
+                p1h = 0.0,
+                p6h = 0.0,
+                p12h = 0.0,
+                p24h = 0.0,
+                p7d = 0.0,
+                p30d = 0.0,
+                p1y = 0.0,
+            ),
+            allTimeHigh = AllTimeHigh(null, null, null),
+        )
     }
 
     private class TestDispatcherProvider(

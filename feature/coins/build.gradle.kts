@@ -35,6 +35,8 @@ android {
 dependencies {
     implementation(project(":common"))
     implementation(project(":navigation"))
+    implementation(project(":feature:settings-api"))
+    implementation(project(":feature:tickers-api"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
