@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.expandVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import dev.bristot.cryptoapp.navigation.NavigationData
 import dev.bristot.cryptoapp.navigation.NavigationRegistry
 import dev.bristot.cryptoapp.navigation.RootDestination
+import dev.bristot.cryptoapp.ui.widgets.floating_button.LocalBottomBarPadding
+import dev.bristot.cryptoapp.ui.widgets.floating_button.LocalScrollToTop
 
 @Composable
 fun CryptoAppContent(
@@ -50,6 +53,7 @@ fun CryptoAppContent(
             }
         }
     }
+    val showBottomBar = remember { { isBottomBarExpanded = true } }
 
     Scaffold(
         modifier = Modifier
@@ -77,19 +81,24 @@ fun CryptoAppContent(
             }
         },
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding()),
+        CompositionLocalProvider(
+            LocalScrollToTop provides showBottomBar,
+            LocalBottomBarPadding provides innerPadding.calculateBottomPadding(),
         ) {
-            rootNavigationItems.forEach { item ->
-                navigationState.navigationDataOrNull(item.destination)?.let { navigationData ->
-                    RootNavigationHost(
-                        modifier = Modifier.fillMaxSize(),
-                        isSelected = navigationState.selectedRootDestination == item.destination,
-                        navigationData = navigationData,
-                        entryProviderBlock = navigationState.entryProviderBlock,
-                    )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding()),
+            ) {
+                rootNavigationItems.forEach { item ->
+                    navigationState.navigationDataOrNull(item.destination)?.let { navigationData ->
+                        RootNavigationHost(
+                            modifier = Modifier.fillMaxSize(),
+                            isSelected = navigationState.selectedRootDestination == item.destination,
+                            navigationData = navigationData,
+                            entryProviderBlock = navigationState.entryProviderBlock,
+                        )
+                    }
                 }
             }
         }

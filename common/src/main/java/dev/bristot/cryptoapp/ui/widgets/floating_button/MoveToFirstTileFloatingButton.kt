@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,18 +21,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
+val LocalScrollToTop = staticCompositionLocalOf<() -> Unit> { {} }
+val LocalBottomBarPadding = compositionLocalOf { 0.dp }
 
 @Composable
 fun MoveToFirstTileFloatingButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val onScrollToTop = LocalScrollToTop.current
+    val bottomBarPadding = LocalBottomBarPadding.current
+
     Box(
         modifier = modifier
+            .padding(bottom = bottomBarPadding)
             .background(color = Color.White)
             .clip(RoundedCornerShape(16.dp))
             .border(BorderStroke(1.dp, Color(0xFFE2E8F0)))
-            .clickable { onClick() }
+            .clickable {
+                onScrollToTop()
+                onClick()
+            }
             .testTag("move_to_first_tile_button"),
         contentAlignment = Alignment.Center
     ) {
