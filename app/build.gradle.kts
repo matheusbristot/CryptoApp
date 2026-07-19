@@ -59,6 +59,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":network"))
     implementation(project(":navigation"))
+    implementation(project(":sync"))
     implementation(project(":feature:market-review-api"))
     implementation(project(":feature:market-review"))
     implementation(project(":feature:tickers"))
@@ -70,7 +71,9 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.hilt)
     implementation(libs.hilt.viewmodel)
+    implementation(libs.androidx.hilt.work)
     ksp(libs.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
 
 
     testImplementation(libs.junit)

@@ -34,7 +34,7 @@ popcornGuineapigParentConfig {
             ),
         ),
         PopcornChildConfiguration(
-            moduleNameRegex = ":(common|network|navigation|testing)",
+            moduleNameRegex = ":(common|network|navigation|testing|sync-api|sync)",
             rules = listOf(
                 DoNotWithRule(
                     notWith = listOf(
