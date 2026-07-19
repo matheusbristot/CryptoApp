@@ -80,6 +80,10 @@ class GetQuotedCoinsUseCaseTest {
             requests++
             return flowOf(coins)
         }
+
+        override fun observeCoin(coinId: String): Flow<Coin?> = flowOf(null)
+
+        override suspend fun refreshCoin(coinId: String, force: Boolean) = Unit
     }
 
     private class FakeTickersRepository(
@@ -118,6 +122,17 @@ class GetQuotedCoinsUseCaseTest {
                 prices = emptyMap(),
             )
         )
+
+        override fun observeTicker(
+            coinId: String,
+            currencies: Set<QuoteCurrency>,
+        ): Flow<Ticker?> = flowOf(null)
+
+        override suspend fun refreshTicker(
+            coinId: String,
+            currencies: Set<QuoteCurrency>,
+            force: Boolean,
+        ) = Unit
 
         private fun tickerCurrency(price: Double) = Currency(
             price = price,

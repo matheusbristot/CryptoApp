@@ -26,4 +26,7 @@ class CoinsRemoteDataSourceImpl @Inject constructor(
         }
     }.flowOn(dispatcherProvider.io)
 
+    override suspend fun getCoin(coinId: String): CoinResponse =
+        coinsRoutes.getCoinById(coinId = coinId)
+
 }

@@ -5,4 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface CoinsDatasource {
     suspend fun getCoins(): Flow<List<CoinResponse>>
+    suspend fun getCoin(coinId: String): CoinResponse
 }
