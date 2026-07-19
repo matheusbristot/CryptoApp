@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.bristot.cryptoapp.feature.tickers.R
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
-import dev.bristot.cryptoapp.feature.tickers.domain.entity.Currency
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.ui.theme.CryptoTheme
@@ -77,7 +76,6 @@ fun TickerContainer(
                 } else {
                     TickerDetails(
                         ticker = current.ticker,
-                        quote = quote,
                         valueFormatter = valueFormatter,
                         quoteCurrency = quoteCurrency,
                         modifier = Modifier.padding(padding),
@@ -101,11 +99,11 @@ private fun StatusContent(loading: Boolean, error: String, modifier: Modifier) {
 @Composable
 private fun TickerDetails(
     ticker: Ticker,
-    quote: Currency,
     valueFormatter: CryptoValueFormatter,
     quoteCurrency: QuoteCurrency,
     modifier: Modifier = Modifier,
 ) {
+    val quote = checkNotNull(ticker.prices[quoteCurrency])
     val changes = quote.percentChangeInterval.run {
         listOf("15m" to p15m, "30m" to p30m, "1h" to p1h, "6h" to p6h, "12h" to p12h,
             "24h" to p24h, "7d" to p7d, "30d" to p30d, "1y" to p1y)

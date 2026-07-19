@@ -211,6 +211,17 @@ class TickersViewModelTest {
             return flowOf(tickers)
         }
         override suspend fun getTicker(coinId: String, currencies: Set<CurrencySymbol>): Flow<Ticker> = flowOf(tickers.first())
+
+        override fun observeTicker(
+            coinId: String,
+            currencies: Set<CurrencySymbol>,
+        ): Flow<Ticker?> = flowOf(null)
+
+        override suspend fun refreshTicker(
+            coinId: String,
+            currencies: Set<CurrencySymbol>,
+            force: Boolean,
+        ) = Unit
     }
 
     private class FakeSettingsRepository : SettingsRepository {

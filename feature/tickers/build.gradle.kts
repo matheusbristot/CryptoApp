@@ -32,9 +32,25 @@ android {
     }
 }
 
+composeCompiler {
+    stabilityConfigurationFiles.add(
+        rootProject.layout.projectDirectory.file("config/compose-stability.conf"),
+    )
+}
+
+composeStabilityAnalyzer {
+    stabilityValidation {
+        stabilityConfigurationFiles.add(
+            rootProject.layout.projectDirectory.file("config/compose-stability.conf"),
+        )
+        ignoreNonRegressiveChanges.set(true)
+    }
+}
+
 dependencies {
     implementation(project(":common"))
     implementation(project(":navigation"))
+    implementation(project(":sync-api"))
     implementation(project(":feature:market-review-api"))
     api(project(":feature:tickers-api"))
 
@@ -50,12 +66,18 @@ dependencies {
     compileOnly(libs.squareup.retrofit.retrofit2)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
     ksp(libs.hilt.compiler)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.squareup.retrofit.retrofit2)
     testImplementation(project(":testing"))
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.squareup.retrofit.retrofit2)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

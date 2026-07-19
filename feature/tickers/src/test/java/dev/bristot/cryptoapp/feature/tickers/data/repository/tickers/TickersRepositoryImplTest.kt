@@ -3,14 +3,20 @@ package dev.bristot.cryptoapp.feature.tickers.data.repository.tickers
 import dev.bristot.cryptoapp.feature.tickers.data.datasource.tickers.TickersDataSource
 import dev.bristot.cryptoapp.feature.tickers.data.model.CurrencyResponse
 import dev.bristot.cryptoapp.feature.tickers.data.model.TickerResponse
+import dev.bristot.cryptoapp.feature.tickers.data.local.CachedTicker
+import dev.bristot.cryptoapp.feature.tickers.data.local.TickersLocalDataSource
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.CurrencySymbol
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import java.io.IOException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
+import dev.bristot.cryptoapp.time.TimeProvider
 
 class TickersRepositoryImplTest {
 
@@ -20,7 +26,7 @@ class TickersRepositoryImplTest {
             tickers = listOf(tickerResponse(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1)),
             ticker = tickerResponse(id = "placeholder", name = "placeholder", symbol = "P", rank = 0),
         )
-        val repository = TickersRepositoryImpl(tickersDataSource = dataSource)
+        val repository = repository(dataSource = dataSource)
 
         val tickers = repository.getTickers(
             currencies = setOf(CurrencySymbol.BRL, CurrencySymbol.BTC)
@@ -54,7 +60,7 @@ class TickersRepositoryImplTest {
         val dataSource = FakeTickersDataSource(
             ticker = tickerResponse(id = "eth", name = "Ethereum", symbol = "ETH", rank = 2)
         )
-        val repository = TickersRepositoryImpl(tickersDataSource = dataSource)
+        val repository = repository(dataSource = dataSource)
 
         val ticker = repository.getTicker(coinId = "eth-ethereum", currencies = setOf(CurrencySymbol.USD)).first()
 
@@ -78,6 +84,98 @@ class TickersRepositoryImplTest {
             ticker
         )
     }
+
+    @Test
+    fun refreshTicker_skipsNetworkWhenCacheIsFresh() = runBlocking {
+        val cachedResponse = tickerResponse(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1)
+        val local = FakeTickersLocalDataSource(
+            initial = CachedTicker(
+                response = cachedResponse,
+                fetchedAtEpochMillis = 950_000L,
+            )
+        )
+        val dataSource = FakeTickersDataSource(ticker = cachedResponse)
+        val repository = repository(
+            dataSource = dataSource,
+            localDataSource = local,
+            now = 1_000_000L,
+        )
+
+        repository.refreshTicker(
+            coinId = "btc",
+            currencies = setOf(CurrencySymbol.USD),
+        )
+
+        assertEquals(0, dataSource.tickerRequestCount)
+    }
+
+    @Test
+    fun refreshTicker_updatesStaleCacheOnce() = runBlocking {
+        val local = FakeTickersLocalDataSource(
+            initial = CachedTicker(
+                response = tickerResponse(
+                    id = "btc",
+                    name = "Old Bitcoin",
+                    symbol = "BTC",
+                    rank = 1,
+                ),
+                fetchedAtEpochMillis = 1L,
+            )
+        )
+        val response = tickerResponse(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1)
+        val dataSource = FakeTickersDataSource(ticker = response)
+        val repository = repository(
+            dataSource = dataSource,
+            localDataSource = local,
+            now = 1_000_000L,
+        )
+
+        repository.refreshTicker("btc", setOf(CurrencySymbol.USD))
+
+        assertEquals(1, dataSource.tickerRequestCount)
+        assertEquals("Bitcoin", local.current?.response?.name)
+        assertEquals(1_000_000L, local.current?.fetchedAtEpochMillis)
+    }
+
+    @Test
+    fun refreshTicker_networkFailurePreservesStaleCache() = runBlocking {
+        val cached = CachedTicker(
+            response = tickerResponse(
+                id = "btc",
+                name = "Last known Bitcoin",
+                symbol = "BTC",
+                rank = 1,
+            ),
+            fetchedAtEpochMillis = 1L,
+        )
+        val local = FakeTickersLocalDataSource(initial = cached)
+        val dataSource = FakeTickersDataSource(
+            ticker = cached.response,
+            tickerFailure = IOException("offline"),
+        )
+        val repository = repository(
+            dataSource = dataSource,
+            localDataSource = local,
+            now = 1_000_000L,
+        )
+
+        assertThrows(IOException::class.java) {
+            runBlocking { repository.refreshTicker("btc", setOf(CurrencySymbol.USD)) }
+        }
+
+        assertEquals(1, dataSource.tickerRequestCount)
+        assertEquals(cached, local.current)
+    }
+
+    private fun repository(
+        dataSource: FakeTickersDataSource,
+        localDataSource: FakeTickersLocalDataSource = FakeTickersLocalDataSource(),
+        now: Long = 1_000_000L,
+    ) = TickersRepositoryImpl(
+        tickersDataSource = dataSource,
+        localDataSource = localDataSource,
+        timeProvider = TimeProvider { now },
+    )
 
     private fun tickerResponse(
         id: String,
@@ -150,12 +248,15 @@ class TickersRepositoryImplTest {
     private class FakeTickersDataSource(
         private val tickers: List<TickerResponse> = emptyList(),
         private val ticker: TickerResponse,
+        private val tickerFailure: Throwable? = null,
     ) : TickersDataSource {
         var requestedTickersCurrencies: List<String> = emptyList()
             private set
         var requestedTickerCoinId: String = ""
             private set
         var requestedTickerCurrencies: List<String> = emptyList()
+            private set
+        var tickerRequestCount: Int = 0
             private set
 
         override suspend fun getTickers(currencies: List<String>): Flow<List<TickerResponse>> {
@@ -164,9 +265,34 @@ class TickersRepositoryImplTest {
         }
 
         override suspend fun getTicker(coinId: String, currencies: List<String>): Flow<TickerResponse> {
+            tickerRequestCount++
             requestedTickerCoinId = coinId
             requestedTickerCurrencies = currencies
+            tickerFailure?.let { throw it }
             return flowOf(ticker)
+        }
+    }
+
+    private class FakeTickersLocalDataSource(
+        initial: CachedTicker? = null,
+    ) : TickersLocalDataSource {
+        private val value = MutableStateFlow(initial)
+        val current: CachedTicker?
+            get() = value.value
+
+        override fun observeTicker(coinId: String, quotesKey: String): Flow<CachedTicker?> = value
+
+        override suspend fun getTicker(coinId: String, quotesKey: String): CachedTicker? = value.value
+
+        override suspend fun upsertTicker(
+            response: TickerResponse,
+            quotesKey: String,
+            fetchedAtEpochMillis: Long,
+        ) {
+            value.value = CachedTicker(
+                response = response,
+                fetchedAtEpochMillis = fetchedAtEpochMillis,
+            )
         }
     }
 }
