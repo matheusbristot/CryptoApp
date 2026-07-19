@@ -16,6 +16,9 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 - `:feature:market-review`: extracted feature for Coinpaprika global market overview (`GET global`), with its own API route, DTO/model, datasource, repository, domain contract, ViewModel, state, and Compose UI.
 - `:feature:tickers-api`: public ticker entities and `TickersRepository` contract shared with other features.
 - `:feature:tickers`: ticker network/data implementation, dependency injection, list/detail/recents flows, sorting, and Compose UI.
+- `:sync-api`: reusable task, target, and scheduling contracts without exposing WorkManager to features.
+- `:sync`: WorkManager/Hilt implementation with unique periodic work, network constraints, reconciliation, and backoff.
+- `:feature:coins-api`: public Coin entities and repository contract for future Favorites consumers.
 - `:feature:coins`: Coinpaprika coins list (`GET coins`) enriched with prices obtained through `:feature:tickers-api` for the quote selected in Settings.
 - `:feature:settings-api`: public settings model, supported quote currencies, and repository contract.
 - `:feature:settings`: Preferences DataStore repository, Settings ViewModel, stable Compose controller, screen, and navigation registration.
@@ -69,6 +72,8 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 - Kotlinx Serialization.
 - Kotlinx Coroutines.
 - AndroidX Preferences DataStore.
+- AndroidX WorkManager and Hilt Work.
+- AndroidX Room for the local Coin and Ticker caches.
 - kotlinx.coroutines-test.
 - JUnit 4.
 - Compose stability analyzer: `compose.stability.analyzer`.
@@ -84,6 +89,7 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 - Coins feature Compose instrumented tests: `feature/coins/src/androidTest`.
 - Tickers feature Compose instrumented tests: `feature/tickers/src/androidTest`.
 - Market review feature Compose instrumented tests: `feature/market-review/src/androidTest`.
+- WorkManager unit and instrumented tests: `sync/src/test` and `sync/src/androidTest`.
 - Feature integration contracts: `feature/market-review-api/src/main`.
 - Shared test utilities: `testing/src/main`.
 - Run common module unit tests: `./gradlew :common:testDebugUnitTest`.
@@ -95,6 +101,7 @@ The project follows MVVM with organization in `data`, `domain`, and `presentatio
 - Instrumented tests: `app/src/androidTest`.
 - Run unit tests: `./gradlew :app:testDebugUnitTest`.
 - Run instrumented tests: `./gradlew :app:connectedDebugAndroidTest`.
+- Validate sync: `./gradlew :sync:testDebugUnitTest :sync:connectedDebugAndroidTest`.
 - Validate coins: `./gradlew :feature:coins:testDebugUnitTest :feature:coins:compileDebugKotlin :feature:coins:compileDebugAndroidTestKotlin`.
 - Validate tickers and app: `./gradlew :common:testDebugUnitTest :common:compileDebugAndroidTestKotlin :feature:tickers:testDebugUnitTest :feature:tickers:compileDebugAndroidTestKotlin :app:testDebugUnitTest :app:compileDebugKotlin :navigation:compileDebugKotlin`.
 - Validate the market review migration coverage: `./gradlew :common:testDebugUnitTest :feature:market-review:testDebugUnitTest :app:testDebugUnitTest`.

@@ -8,6 +8,8 @@ O módulo `:feature:tickers` implementa o fluxo de tickers da Coinpaprika. Ele e
 - `data/model` e `data/dto`: responses serializáveis e mapper para domínio.
 - `data/datasource`: datasource remoto e bind Hilt.
 - `data/repository`: implementações e binds Hilt de `TickersRepository` e do `RecentTickersRepository`, privado da feature.
+- `data/local`: cache Room do detalhe por moeda e conjunto normalizado de quotes.
+- `data/sync`: tarefa de atualização registrada no `:sync-api` por multibinding Hilt.
 - `domain`: contrato privado de tickers recentes; entidades públicas de ticker/moeda e `TickersRepository` vêm de `:feature:tickers-api`.
 - `presentation/tickers`: tela principal de mercado, tile, estado, controller, sort de tickers e registro de navegação.
 - `presentation/ticker`: tela de detalhe de ticker.
@@ -18,6 +20,8 @@ O módulo `:feature:tickers` implementa o fluxo de tickers da Coinpaprika. Ele e
 - O módulo reutiliza `CoinPaprikaRouteFactory`; a implementação com `Retrofit` fica encapsulada no `:network`, que é dependência direta apenas do `:app`.
 - `TickersApiModule` cria `TickersRoutes` dentro da feature.
 - Múltiplas quotes são serializadas no único parâmetro separado por vírgulas exigido pela Coinpaprika, por exemplo `quotes=BRL,BTC`.
+- O detalhe usa stale-while-revalidate: emite o cache, atualiza após cinco minutos e mantém o último valor se a rede falhar. Respostas com `last_updated` anterior ao cache são descartadas; payloads serializados incompatíveis também são removidos e buscados novamente.
+- `TickerSyncTask` sincroniza os IDs fornecidos por Favorites com as quotes atuais de Settings, respeita o TTL do repository nos retries e o WorkManager executa em background com piso de 15 minutos.
 - A implementação depende de `:feature:tickers-api`; consumidores que precisam somente dos dados dependem do módulo API, não desta implementação.
 - A feature declara `TickersDestination`, `TickerDetailDestination` e `RecentTickersDestination`, registrando as entradas e a metadata raiz via Hilt `@IntoSet`.
 - A tela principal resolve o header de market review por meio de `MarketOverviewHeaderRegistry` do módulo `:feature:market-review-api`.

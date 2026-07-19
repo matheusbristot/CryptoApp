@@ -21,6 +21,9 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`, dis
 - `:feature:settings`: repository com Preferences DataStore, ViewModel, Controller Compose estável, tela e registro de navegação.
 - `common`: módulo Android Library para contratos comuns de logger e dispatchers de coroutines, tema/cores compartilhados, botão flutuante reutilizável e bindings Hilt internos.
 - `navigation`: módulo Android Library com contratos abertos, host compartilhado e o registro injetável único `NavigationRegistry`.
+- `:sync-api`: contratos reutilizáveis de tarefas, alvos e agendamento, sem expor WorkManager às features.
+- `:sync`: implementação WorkManager/Hilt com unique periodic work, constraint de rede, reconciliação e backoff.
+- `:feature:coins-api`: entidades e repository públicos de Coin para consumo futuro por Favorites.
 - `:testing`: módulo Android Library usado apenas em `testImplementation` para utilitários compartilhados de teste, como `MainDispatcherRule` e `clearForTest`.
 - A injeção de dependências principal permanece no `app`, com Hilt e `@HiltAndroidApp`; módulos compartilhados e de feature contribuem bindings Hilt próprios.
 
@@ -69,6 +72,8 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`, dis
 - Kotlinx Serialization.
 - Kotlinx Coroutines.
 - AndroidX Preferences DataStore.
+- AndroidX WorkManager e Hilt Work.
+- AndroidX Room para os caches locais de Coin e Ticker.
 - kotlinx.coroutines-test.
 - JUnit 4.
 - Analisador de estabilidade do Compose: `compose.stability.analyzer`.
@@ -84,6 +89,7 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`, dis
 - Testes instrumentados Compose da feature de coins: `feature/coins/src/androidTest`.
 - Testes instrumentados Compose da feature de tickers: `feature/tickers/src/androidTest`.
 - Testes instrumentados Compose da feature de market review: `feature/market-review/src/androidTest`.
+- Testes unitários e instrumentados do WorkManager: `sync/src/test` e `sync/src/androidTest`.
 - Contratos de integração da feature: `feature/market-review-api/src/main`.
 - Utilitários compartilhados de teste: `testing/src/main`.
 - Rodar testes unitários do módulo comum: `./gradlew :common:testDebugUnitTest`.
@@ -95,6 +101,7 @@ O projeto adota MVVM com organização em `data`, `domain` e `presentation`, dis
 - Instrumentados: `app/src/androidTest`.
 - Rodar testes unitários: `./gradlew :app:testDebugUnitTest`.
 - Rodar testes instrumentados: `./gradlew :app:connectedDebugAndroidTest`.
+- Validar sync: `./gradlew :sync:testDebugUnitTest :sync:connectedDebugAndroidTest`.
 - Validar coins: `./gradlew :feature:coins:testDebugUnitTest :feature:coins:compileDebugKotlin :feature:coins:compileDebugAndroidTestKotlin`.
 - Validar tickers e app: `./gradlew :common:testDebugUnitTest :common:compileDebugAndroidTestKotlin :feature:tickers:testDebugUnitTest :feature:tickers:compileDebugAndroidTestKotlin :app:testDebugUnitTest :app:compileDebugKotlin :navigation:compileDebugKotlin`.
 - Validar tudo que cobre a migração de market review: `./gradlew :common:testDebugUnitTest :feature:market-review:testDebugUnitTest :app:testDebugUnitTest`.

@@ -8,6 +8,8 @@ The `:feature:tickers` module implements the Coinpaprika tickers flow. It encaps
 - `data/model` and `data/dto`: serializable responses and domain mapper.
 - `data/datasource`: remote datasource and Hilt binding.
 - `data/repository`: implementations and Hilt bindings for `TickersRepository` and the feature-private `RecentTickersRepository`.
+- `data/local`: Room detail cache keyed by coin and normalized quote set.
+- `data/sync`: refresh task registered in `:sync-api` through a Hilt multibinding.
 - `domain`: feature-private recent-ticker contract; public ticker/currency entities and `TickersRepository` are provided by `:feature:tickers-api`.
 - `presentation/tickers`: main market screen, tile, state, controller, ticker sorting, and navigation registration.
 - `presentation/ticker`: ticker detail screen.
@@ -18,6 +20,8 @@ The `:feature:tickers` module implements the Coinpaprika tickers flow. It encaps
 - The module reuses `CoinPaprikaRouteFactory`; the `Retrofit` implementation stays encapsulated in `:network`, which is a direct dependency only of `:app`.
 - `TickersApiModule` creates `TickersRoutes` inside the feature.
 - Multiple requested quotes are serialized as the single comma-separated Coinpaprika parameter (for example, `quotes=BRL,BTC`).
+- Detail uses stale-while-revalidate: it emits the cache, refreshes after five minutes, and preserves the last value when the network fails. Responses older than the cached `last_updated` are rejected, and incompatible serialized payloads are discarded and fetched again.
+- `TickerSyncTask` synchronizes Favorites IDs with the current Settings quotes, respects repository TTL on retries, and WorkManager runs it in the background with a minimum 15-minute cadence.
 - The implementation depends on `:feature:tickers-api`; consumers that only need ticker data depend on the API module instead of this module.
 - The feature declares `TickersDestination`, `TickerDetailDestination`, and `RecentTickersDestination`, registering their entries and root metadata through Hilt `@IntoSet`.
 - The main screen resolves the market review header through `MarketOverviewHeaderRegistry` from `:feature:market-review-api`.

@@ -19,6 +19,17 @@ O módulo `:feature:tickers-api` é o boundary público para consultar tickers c
 ## Semântica de quotes
 Callers solicitam as quotes explicitamente. Os preços retornados já são cotados pelo backend e devem ser lidos de `Ticker.prices[quoteCurrency]`; quotes ausentes são tratadas como indisponíveis, não como erro de mapa nem como valores que exigem conversão.
 
+## Contrato de estabilidade Compose
+
+`Ticker` é tratado como estável pelos módulos Compose consumidores por meio de [`config/compose-stability.conf`](../../config/compose-stability.conf). A decisão permanece no consumidor para que este módulo de domínio não dependa de Compose nem use `@Stable`/`@Immutable`.
+
+Ao editar `Ticker`:
+
+- preserve a imutabilidade transitiva de suas propriedades e value objects;
+- mantenha `prices` somente leitura e nunca reutilize um `MutableMap` que possa ser alterado depois da construção;
+- se o contrato deixar de ser verdadeiro, remova ou restrinja o override e prefira um modelo de apresentação imutável no módulo consumidor;
+- rode `./gradlew :feature:tickers:debugStabilityCheck` e confira o baseline versionado do analyzer.
+
 ## Testes
 - Testes de contratos e entidades: `feature/tickers-api/src/test`.
 - Executar: `./gradlew :feature:tickers-api:testDebugUnitTest`.
