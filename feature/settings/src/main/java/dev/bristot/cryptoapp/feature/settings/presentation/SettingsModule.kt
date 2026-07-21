@@ -30,6 +30,7 @@ object SettingsModule {
                     val controller = remember(viewModel) {
                         SettingsController(
                             settings = viewModel.settings,
+                            favoriteSyncStatuses = viewModel.favoriteSyncStatuses,
                             setQuoteEnabled = viewModel::setQuoteEnabled,
                             selectQuote = viewModel::selectQuote,
                         )

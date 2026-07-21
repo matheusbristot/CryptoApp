@@ -21,6 +21,7 @@ import dev.bristot.cryptoapp.navigation.NavigationCryptoAppHilt
 import dev.bristot.cryptoapp.navigation.NavigationData
 import dev.bristot.cryptoapp.navigation.NavigationRegistry
 import dev.bristot.cryptoapp.navigation.LocalNavigationHostActive
+import dev.bristot.cryptoapp.navigation.LocalNavigationData
 import dev.bristot.cryptoapp.navigation.CryptoAppDestination
 import dev.bristot.cryptoapp.navigation.RootDestination
 
@@ -79,7 +80,10 @@ internal fun RootNavigationHost(
     navigationData: NavigationData,
     entryProviderBlock: EntryProviderInstaller,
 ) {
-    CompositionLocalProvider(LocalNavigationHostActive provides isSelected) {
+    CompositionLocalProvider(
+        LocalNavigationHostActive provides isSelected,
+        LocalNavigationData provides navigationData,
+    ) {
         NavigationCryptoAppHilt(
             modifier = modifier
                 .alpha(if (isSelected) 1f else 0f)

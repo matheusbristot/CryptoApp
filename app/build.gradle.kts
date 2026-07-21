@@ -65,6 +65,7 @@ dependencies {
     implementation(project(":feature:tickers"))
     implementation(project(":feature:coins"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:favorites"))
     compileOnly(libs.squareup.retrofit.retrofit2)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.compose.material.icons.extended)

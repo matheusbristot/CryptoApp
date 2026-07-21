@@ -22,7 +22,7 @@ class TickerSyncTask @Inject constructor(
 ) : FeatureSyncTask {
 
     override val taskKey: String = "ticker-details"
-    override val targetType: SyncTargetType = SyncTargetType.COIN
+    override val targetType: SyncTargetType = SyncTargetType.TICKER
     override val repeatInterval: Duration = 5.minutes
 
     override suspend fun sync(): SyncResult {

@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.bristot.cryptoapp.sync.api.FeatureSyncTask
 import dev.bristot.cryptoapp.sync.api.SyncScheduler
+import dev.bristot.cryptoapp.sync.api.SyncStatusObserver
 import dev.bristot.cryptoapp.sync.api.SyncTargetProvider
 import dev.bristot.cryptoapp.sync.api.SyncTargetRegistry
 import javax.inject.Singleton
@@ -22,6 +23,12 @@ internal abstract class SyncBindingsModule {
     @Binds
     @Singleton
     abstract fun bindSyncTargetRegistry(implementation: DefaultSyncTargetRegistry): SyncTargetRegistry
+
+    @Binds
+    @Singleton
+    abstract fun bindSyncStatusObserver(
+        implementation: WorkManagerSyncStatusObserver,
+    ): SyncStatusObserver
 
     @Multibinds
     abstract fun syncTasks(): Set<FeatureSyncTask>

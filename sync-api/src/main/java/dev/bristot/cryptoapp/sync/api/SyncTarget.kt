@@ -7,6 +7,7 @@ data class SyncTarget(
 
 enum class SyncTargetType {
     COIN,
+    TICKER,
 }
 
 fun interface SyncTargetProvider {

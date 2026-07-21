@@ -5,4 +5,16 @@
     <string name="settings_requested_quotes_title">Quote currencies requested from the backend</string>
     <string name="settings_requested_quotes_description">Select up to three currencies. The displayed quote currency must always remain enabled.</string>
     <string name="settings_current_quote">Currently displayed quote currency</string>
+    <string name="settings_sync_title">Favorite synchronization</string>
+    <string name="settings_sync_description">Background updates are scheduled independently for Coins and Tickers.</string>
+    <string name="settings_sync_coins">Coins</string>
+    <string name="settings_sync_tickers">Tickers</string>
+    <string name="settings_sync_count">%1$d favorites</string>
+    <string name="settings_sync_next">Next eligible sync: %1$s</string>
+    <string name="settings_sync_no_next">No sync scheduled</string>
+    <string name="settings_sync_inactive">Inactive</string>
+    <string name="settings_sync_scheduled">Scheduled</string>
+    <string name="settings_sync_running">Running</string>
+    <string name="settings_sync_retrying">Retrying</string>
+    <string name="settings_sync_failed">Failed</string>
 </resources>

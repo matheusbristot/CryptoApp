@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":sync-api"))
     implementation(project(":feature:settings-api"))
     implementation(project(":feature:tickers-api"))
+    implementation(project(":feature:favorites-api"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

@@ -27,6 +27,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.bristot.cryptoapp.feature.settings.R
 import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.feature.settings.api.AppSettings.Companion.MAX_REQUESTED_QUOTES
+import dev.bristot.cryptoapp.feature.favorites.api.FavoriteType
+import dev.bristot.cryptoapp.sync.api.SyncWorkState
+import java.text.DateFormat
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +38,7 @@ fun SettingsComponent(
     controller: SettingsController,
 ) {
     val settings by controller.settings.collectAsStateWithLifecycle()
+    val favoriteSyncStatuses by controller.favoriteSyncStatuses.collectAsStateWithLifecycle()
     val enabledCurrencies = settings.requestedQuoteCurrencies.sortedBy(QuoteCurrency::name)
     val selectionLimitReached = enabledCurrencies.size >= MAX_REQUESTED_QUOTES
 
@@ -46,6 +51,19 @@ fun SettingsComponent(
             contentPadding = PaddingValues(bottom = 24.dp),
         ) {
             item {
+                SettingsSection(
+                    title = stringResource(R.string.settings_sync_title),
+                    description = stringResource(R.string.settings_sync_description),
+                )
+            }
+            items(
+                items = favoriteSyncStatuses,
+                key = { status -> "sync-${status.type.name}" },
+            ) { status ->
+                FavoriteSyncStatusItem(status)
+            }
+            item {
+                HorizontalDivider()
                 SettingsSection(
                     title = stringResource(R.string.settings_display_quote_title),
                     description = stringResource(R.string.settings_display_quote_description),
@@ -94,6 +112,40 @@ fun SettingsComponent(
             }
         }
     }
+}
+
+@Composable
+private fun FavoriteSyncStatusItem(status: FavoriteSyncUiStatus) {
+    val dateFormatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+    val featureName = when (status.type) {
+        FavoriteType.COIN -> stringResource(R.string.settings_sync_coins)
+        FavoriteType.TICKER -> stringResource(R.string.settings_sync_tickers)
+    }
+    val stateLabel = when (status.state) {
+        SyncWorkState.INACTIVE -> stringResource(R.string.settings_sync_inactive)
+        SyncWorkState.SCHEDULED -> stringResource(R.string.settings_sync_scheduled)
+        SyncWorkState.RUNNING -> stringResource(R.string.settings_sync_running)
+        SyncWorkState.RETRYING -> stringResource(R.string.settings_sync_retrying)
+        SyncWorkState.FAILED -> stringResource(R.string.settings_sync_failed)
+    }
+    val nextSync = status.nextEligibleAtEpochMillis?.let { epochMillis ->
+        stringResource(
+            R.string.settings_sync_next,
+            dateFormatter.format(Date(epochMillis)),
+        )
+    } ?: stringResource(R.string.settings_sync_no_next)
+
+    ListItem(
+        headlineContent = { Text(featureName) },
+        supportingContent = {
+            Column {
+                Text(stringResource(R.string.settings_sync_count, status.favoriteCount))
+                Text(nextSync)
+            }
+        },
+        trailingContent = { Text(stateLabel, style = MaterialTheme.typography.labelLarge) },
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable

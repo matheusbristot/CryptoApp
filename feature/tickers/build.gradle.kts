@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":navigation"))
     implementation(project(":sync-api"))
     implementation(project(":feature:market-review-api"))
+    implementation(project(":feature:favorites-api"))
     api(project(":feature:tickers-api"))
 
     implementation(platform(libs.androidx.compose.bom))
