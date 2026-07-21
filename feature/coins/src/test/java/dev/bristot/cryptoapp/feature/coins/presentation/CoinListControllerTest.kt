@@ -1,6 +1,8 @@
 package dev.bristot.cryptoapp.feature.coins.presentation
 
 import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.CoinListState
+import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.CoinListSection
+import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.FavoriteCoinItem
 import dev.bristot.cryptoapp.ui.sort.SortOrder
 import dev.bristot.cryptoapp.ui.sort.SortState
 import dev.bristot.cryptoapp.ui.sort.SortType
@@ -15,14 +17,20 @@ class CoinListControllerTest {
     @Test
     fun keepsStateAndDelegatesActions() {
         val state = MutableStateFlow<CoinListState>(CoinListState.Initial)
+        val favorites = MutableStateFlow<List<FavoriteCoinItem>>(emptyList())
+        val section = MutableStateFlow(CoinListSection.ALL)
         var shouldShowToTop = false
         var requestedSort: SortState? = null
         var refreshCount = 0
         val controller = CoinListController(
             state = state,
+            favorites = favorites,
+            selectedSection = section,
             refreshIfNeeded = { refreshCount++ },
+            setActive = {},
             handleToTop = { shouldShowToTop = it },
             sortBy = { requestedSort = it },
+            selectSection = { section.value = it },
         )
         val sort = SortState(
             type = SortType.NAME,

@@ -2,18 +2,28 @@ package dev.bristot.cryptoapp.feature.tickers.presentation.tickers
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -29,6 +39,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
@@ -48,6 +60,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.feature.market_review.api.MarketOverviewQuoteData
+import dev.bristot.cryptoapp.feature.tickers.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @TraceRecomposition
@@ -64,6 +77,7 @@ fun MarketContainer(
     sortController: SortController,
     onOpenRecentTickers: () -> Unit,
     onSelectTicker: (Ticker) -> Unit,
+    onSelectFavorite: (id: String, name: String) -> Unit = { _, _ -> },
     valueFormatter: CryptoValueFormatter,
     quoteCurrency: QuoteCurrency = QuoteCurrency.BRL,
 ) {
@@ -71,6 +85,8 @@ fun MarketContainer(
     val textColors = rememberAppTextColors(isDarkMode)
     val floatingState by floatingButtonController.state.collectAsStateWithLifecycle()
     val tickersState by tickersController.state.collectAsStateWithLifecycle()
+    val favoritesState by tickersController.favoritesState.collectAsStateWithLifecycle()
+    val selectedSection by tickersController.selectedSection.collectAsStateWithLifecycle()
     val recentTickersState by recentTickersController.state.collectAsStateWithLifecycle()
     val sortState by sortController.state.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
@@ -117,6 +133,11 @@ fun MarketContainer(
     }
 
     val currentContentData by rememberUpdatedState(contentData)
+    val displayedTickers = if (selectedSection == TickersSection.FAVORITES) {
+        favoritesState.tickers
+    } else {
+        currentContentData.tickersData
+    }
 
     LaunchedEffect(lazyColumnRememberState) {
         snapshotFlow {
@@ -134,36 +155,67 @@ fun MarketContainer(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                modifier = Modifier,
-                title = {
-                    Text("CryptoApp")
-                },
-                actions = {
-                    AnimatedVisibility(
-                        visible = currentContentData.tickersData.isNotEmpty()
+            Column {
+                TopAppBar(
+                    modifier = Modifier,
+                    title = {
+                        Text("CryptoApp")
+                    },
+                    actions = {
+                        AnimatedVisibility(visible = displayedTickers.isNotEmpty()) {
+                            SortComponent(
+                                state = sortState,
+                                onScrollToFirstIndex = {
+                                    coroutineScope.launch {
+                                        lazyColumnRememberState.scrollToItem(index = 0)
+                                    }
+                                },
+                                onChangeType = { type ->
+                                    val updated = sortState.copy(type = type)
+                                    sortController.changeType(type)
+                                    tickersController.sortBy(updated)
+                                },
+                                onChangeOrder = { order ->
+                                    val updated = sortState.copy(order = order)
+                                    sortController.changeOrder(order)
+                                    tickersController.sortBy(updated)
+                                },
+                            )
+                        }
+                    },
+                )
+                if (favoritesState.count > 0) {
+                    PrimaryTabRow(
+                        selectedTabIndex = selectedSection.ordinal,
+                        modifier = Modifier.testTag("tickers_tab_row"),
                     ) {
-                        SortComponent(
-                            state = sortState,
-                            onScrollToFirstIndex = {
-                                coroutineScope.launch {
-                                    lazyColumnRememberState.scrollToItem(index = 0)
-                                }
-                            },
-                            onChangeType = { type ->
-                                val updated = sortState.copy(type = type)
-                                sortController.changeType(type)
-                                tickersController.sortBy(updated)
-                            },
-                            onChangeOrder = { order ->
-                                val updated = sortState.copy(order = order)
-                                sortController.changeOrder(order)
-                                tickersController.sortBy(updated)
-                            },
-                        )
+                        TickersSection.entries.forEach { section ->
+                            Tab(
+                                selected = selectedSection == section,
+                                onClick = { tickersController.selectSection(section) },
+                                text = {
+                                    Text(
+                                        stringResource(
+                                            if (section == TickersSection.MARKET) {
+                                                R.string.market_tab
+                                            } else {
+                                                R.string.favorites_tab
+                                            },
+                                        ),
+                                    )
+                                },
+                                modifier = Modifier.testTag(
+                                    if (section == TickersSection.MARKET) {
+                                        "tickers_market_tab"
+                                    } else {
+                                        "tickers_favorites_tab"
+                                    },
+                                ),
+                            )
+                        }
                     }
-                },
-            )
+                }
+            }
         },
         floatingActionButton = {
             val shouldShow by remember {
@@ -182,19 +234,128 @@ fun MarketContainer(
             }
         },
     ) { innerPadding: PaddingValues ->
-        Content(
-            innerPadding,
-            lazyColumnRememberState,
-            contentData,
-            isDarkMode,
-            textColors,
-            marketOverviewHeaderContent,
-            onOpenRecentTickers,
-            onSelectTicker,
-            valueFormatter,
-            quoteCurrency,
-            marketOverviewQuoteData,
-        )
+        if (selectedSection == TickersSection.FAVORITES && favoritesState.count > 0) {
+            FavoritesContent(
+                innerPadding = innerPadding,
+                lazyColumnRememberState = lazyColumnRememberState,
+                favoritesState = favoritesState,
+                isDarkMode = isDarkMode,
+                textColors = textColors,
+                onSelectFavorite = onSelectFavorite,
+                valueFormatter = valueFormatter,
+                quoteCurrency = quoteCurrency,
+            )
+        } else {
+            Content(
+                innerPadding,
+                lazyColumnRememberState,
+                contentData,
+                isDarkMode,
+                textColors,
+                marketOverviewHeaderContent,
+                onOpenRecentTickers,
+                onSelectTicker,
+                valueFormatter,
+                quoteCurrency,
+                marketOverviewQuoteData,
+            )
+        }
+    }
+}
+
+@Composable
+private fun FavoritesContent(
+    innerPadding: PaddingValues,
+    lazyColumnRememberState: LazyListState,
+    favoritesState: TickerFavoritesState,
+    isDarkMode: Boolean,
+    textColors: AppTextColors,
+    onSelectFavorite: (id: String, name: String) -> Unit,
+    valueFormatter: CryptoValueFormatter,
+    quoteCurrency: QuoteCurrency,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp)
+            .padding(innerPadding)
+            .testTag("ticker_favorites_list"),
+        state = lazyColumnRememberState,
+        contentPadding = PaddingValues(vertical = 24.dp),
+    ) {
+        items(
+            items = favoritesState.items,
+            key = { item -> item.ref.itemId },
+        ) { item ->
+            val ticker = item.ticker
+            if (ticker != null) {
+                TickerTile(
+                    isDarkMode = isDarkMode,
+                    textColor = textColors.primary,
+                    secondaryTextColor = textColors.secondary,
+                    ticker = ticker,
+                    valueFormatter = valueFormatter,
+                    onClick = { _, _ -> onSelectFavorite(ticker.id, ticker.name) },
+                    quoteCurrency = quoteCurrency,
+                )
+            } else {
+                UnavailableFavoriteTile(
+                    item = item,
+                    isDarkMode = isDarkMode,
+                    textColors = textColors,
+                    onClick = {
+                        onSelectFavorite(item.ref.itemId, item.ref.itemId)
+                    },
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+private fun UnavailableFavoriteTile(
+    item: FavoriteTickerState,
+    isDarkMode: Boolean,
+    textColors: AppTextColors,
+    onClick: () -> Unit,
+) {
+    val cardColor = if (isDarkMode) {
+        dev.bristot.cryptoapp.ui.theme.CryptoTheme.CardDark.copy(alpha = .55f)
+    } else {
+        Color.White
+    }
+    val borderColor = if (isDarkMode) Color(0xFF293548) else Color(0xFFE2E8F0)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .testTag("ticker_favorite_unavailable_${item.ref.itemId}"),
+        shape = RoundedCornerShape(18.dp),
+        color = cardColor,
+        border = BorderStroke(1.dp, borderColor),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+        ) {
+            Text(
+                text = item.ref.itemId,
+                color = textColors.primary,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = item.error ?: stringResource(R.string.favorite_ticker_loading),
+                color = if (item.error != null) MaterialTheme.colorScheme.error else textColors.secondary,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.testTag(
+                    if (item.isLoading) {
+                        "ticker_favorite_loading_${item.ref.itemId}"
+                    } else {
+                        "ticker_favorite_error_${item.ref.itemId}"
+                    },
+                ),
+            )
+        }
     }
 }
 

@@ -5,7 +5,7 @@
 //   ./gradlew :coins:stabilityDump
 
 @Composable
-public fun dev.bristot.cryptoapp.feature.coins.presentation.CoinListComponent(controller: dev.bristot.cryptoapp.feature.coins.presentation.CoinListController, sortController: dev.bristot.cryptoapp.ui.sort.SortController, modifier: androidx.compose.ui.Modifier, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, lazyColumnRememberState: androidx.compose.foundation.lazy.LazyListState): kotlin.Unit
+public fun dev.bristot.cryptoapp.feature.coins.presentation.CoinListComponent(controller: dev.bristot.cryptoapp.feature.coins.presentation.CoinListController, sortController: dev.bristot.cryptoapp.ui.sort.SortController, modifier: androidx.compose.ui.Modifier, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, lazyColumnRememberState: androidx.compose.foundation.lazy.LazyListState, onCoinClick: kotlin.Function1<dev.bristot.cryptoapp.feature.coins.domain.entity.Coin, kotlin.Unit>): kotlin.Unit
   skippable: true
   restartable: true
   params:
@@ -14,9 +14,39 @@ public fun dev.bristot.cryptoapp.feature.coins.presentation.CoinListComponent(co
     - modifier: STABLE (marked @Stable or @Immutable)
     - valueFormatter: STABLE (marked @Stable or @Immutable)
     - lazyColumnRememberState: STABLE (marked @Stable or @Immutable)
+    - onCoinClick: STABLE (function type)
 
 @Composable
-public fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinList(modifier: androidx.compose.ui.Modifier, lazyColumnRememberState: androidx.compose.foundation.lazy.LazyListState, coins: kotlin.collections.List<dev.bristot.cryptoapp.feature.coins.domain.entity.Coin>, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter): kotlin.Unit
+public fun dev.bristot.cryptoapp.feature.coins.presentation.detail.CoinDetailComponent(name: kotlin.String, controller: dev.bristot.cryptoapp.feature.coins.presentation.detail.CoinDetailController, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, showBackButton: kotlin.Boolean, onBack: kotlin.Function0<kotlin.Unit>, modifier: androidx.compose.ui.Modifier): kotlin.Unit
+  skippable: true
+  restartable: true
+  params:
+    - name: STABLE (String is immutable)
+    - controller: STABLE (marked @Stable or @Immutable)
+    - valueFormatter: STABLE (marked @Stable or @Immutable)
+    - showBackButton: STABLE (primitive type)
+    - onBack: STABLE (function type)
+    - modifier: STABLE (marked @Stable or @Immutable)
+
+@Composable
+private fun dev.bristot.cryptoapp.feature.coins.presentation.detail.CoinDetails(coin: dev.bristot.cryptoapp.feature.coins.domain.entity.Coin, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, modifier: androidx.compose.ui.Modifier): kotlin.Unit
+  skippable: true
+  restartable: true
+  params:
+    - coin: STABLE (matched by stability configuration)
+    - valueFormatter: STABLE (marked @Stable or @Immutable)
+    - modifier: STABLE (marked @Stable or @Immutable)
+
+@Composable
+private fun dev.bristot.cryptoapp.feature.coins.presentation.detail.DetailMetric(label: kotlin.String, value: kotlin.String): kotlin.Unit
+  skippable: true
+  restartable: true
+  params:
+    - label: STABLE (String is immutable)
+    - value: STABLE (String is immutable)
+
+@Composable
+public fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinList(modifier: androidx.compose.ui.Modifier, lazyColumnRememberState: androidx.compose.foundation.lazy.LazyListState, coins: kotlin.collections.List<dev.bristot.cryptoapp.feature.coins.domain.entity.Coin>, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, onCoinClick: kotlin.Function1<dev.bristot.cryptoapp.feature.coins.domain.entity.Coin, kotlin.Unit>): kotlin.Unit
   skippable: false
   restartable: true
   params:
@@ -24,6 +54,7 @@ public fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinList(mod
     - lazyColumnRememberState: STABLE (marked @Stable or @Immutable)
     - coins: RUNTIME (requires runtime check)
     - valueFormatter: STABLE (marked @Stable or @Immutable)
+    - onCoinClick: STABLE (function type)
 
 @Composable
 private fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListHeader(coinCount: kotlin.Int): kotlin.Unit
@@ -40,11 +71,24 @@ public fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListLoad
     - modifier: STABLE (marked @Stable or @Immutable)
 
 @Composable
-public fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListTile(modifier: androidx.compose.ui.Modifier, coin: dev.bristot.cryptoapp.feature.coins.domain.entity.Coin, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter): kotlin.Unit
+public fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.CoinListTile(modifier: androidx.compose.ui.Modifier, coin: dev.bristot.cryptoapp.feature.coins.domain.entity.Coin, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, onClick: kotlin.Function0<kotlin.Unit>): kotlin.Unit
   skippable: true
   restartable: true
   params:
     - modifier: STABLE (marked @Stable or @Immutable)
     - coin: STABLE (matched by stability configuration)
     - valueFormatter: STABLE (marked @Stable or @Immutable)
+    - onClick: STABLE (function type)
+
+@Composable
+public fun dev.bristot.cryptoapp.feature.coins.presentation.widgets.FavoriteCoinList(modifier: androidx.compose.ui.Modifier, lazyListState: androidx.compose.foundation.lazy.LazyListState, favorites: kotlin.collections.List<dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.FavoriteCoinItem>, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, onCoinClick: kotlin.Function1<dev.bristot.cryptoapp.feature.coins.domain.entity.Coin, kotlin.Unit>, onUnavailableClick: kotlin.Function1<dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.FavoriteCoinItem, kotlin.Unit>): kotlin.Unit
+  skippable: false
+  restartable: true
+  params:
+    - modifier: STABLE (marked @Stable or @Immutable)
+    - lazyListState: STABLE (marked @Stable or @Immutable)
+    - favorites: RUNTIME (requires runtime check)
+    - valueFormatter: STABLE (marked @Stable or @Immutable)
+    - onCoinClick: STABLE (function type)
+    - onUnavailableClick: STABLE (function type)
 

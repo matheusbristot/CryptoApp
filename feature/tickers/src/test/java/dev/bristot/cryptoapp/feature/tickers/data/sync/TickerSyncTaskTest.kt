@@ -26,6 +26,7 @@ class TickerSyncTaskTest {
     @Test
     fun sync_refreshesTargetsWithCurrentSettingsQuotes() = runTest {
         val repository = FakeTickersRepository()
+        var requestedTargetType: SyncTargetType? = null
         val task = TickerSyncTask(
             repository = repository,
             settingsRepository = FakeSettingsRepository(
@@ -35,13 +36,17 @@ class TickerSyncTaskTest {
                 )
             ),
             targetRegistry = object : SyncTargetRegistry {
-                override suspend fun idsFor(type: SyncTargetType): Set<String> =
-                    setOf("btc-bitcoin")
+                override suspend fun idsFor(type: SyncTargetType): Set<String> {
+                    requestedTargetType = type
+                    return setOf("btc-bitcoin")
+                }
             },
             logger = NoOpLogger,
         )
 
         assertEquals(SyncResult.Success, task.sync())
+        assertEquals(SyncTargetType.TICKER, task.targetType)
+        assertEquals(SyncTargetType.TICKER, requestedTargetType)
         assertEquals(
             listOf("btc-bitcoin" to setOf(QuoteCurrency.BRL, QuoteCurrency.USD)),
             repository.requests,

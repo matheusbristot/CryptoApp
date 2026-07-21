@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,6 +53,7 @@ fun TickerContainer(
     quoteCurrency: QuoteCurrency = QuoteCurrency.BRL,
 ) {
     val state by tickerController.state.collectAsStateWithLifecycle()
+    val isFavorite by tickerController.isFavorite.collectAsStateWithLifecycle()
 
     Scaffold(modifier = modifier.fillMaxSize(), topBar = {
         TopAppBar(title = {
@@ -58,6 +61,19 @@ fun TickerContainer(
         }, navigationIcon = {
             if (showBackButton) IconButton(onClick = onBackButtonClick) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back_button))
+            }
+        }, actions = {
+            IconButton(
+                onClick = tickerController.toggleFavorite,
+                modifier = Modifier.testTag("ticker_favorite_button"),
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = stringResource(
+                        if (isFavorite) R.string.remove_ticker_favorite else R.string.add_ticker_favorite,
+                    ),
+                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         })
     }) { padding ->

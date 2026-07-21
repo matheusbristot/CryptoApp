@@ -13,11 +13,10 @@ import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.multibindings.IntoSet
 import dev.bristot.cryptoapp.feature.tickers.navigation.TickerDetailDestination
 import dev.bristot.cryptoapp.navigation.EntryProviderInstaller
-import dev.bristot.cryptoapp.navigation.NavigationData
+import dev.bristot.cryptoapp.navigation.LocalNavigationData
 import dev.bristot.cryptoapp.navigation.LocalNavigationHostActive
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
-import javax.inject.Provider
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -31,12 +30,11 @@ object TickerModule {
     @IntoSet
     @Provides
     fun provideTickerNavigationData(
-        navigationDataProvider: Provider<NavigationData>,
         valueFormatter: CryptoValueFormatter,
         settingsRepository: SettingsRepository,
     ): EntryProviderInstaller = {
         entry<TickerDetailDestination> { tickerDetail ->
-            val navigationData = navigationDataProvider.get()
+            val navigationData = LocalNavigationData.current
             val isActive = LocalNavigationHostActive.current
             val tickerViewModel = hiltViewModel<TickerViewModel, TickerViewModelFactory>(
                 creationCallback = { factory -> factory.create(tickerDetail.id) })
@@ -45,6 +43,8 @@ object TickerModule {
                     state = tickerViewModel.state,
                     quoteCurrency = tickerViewModel.quoteCurrency,
                     refreshIfNeeded = tickerViewModel::refreshIfNeeded,
+                    isFavorite = tickerViewModel.isFavorite,
+                    toggleFavorite = tickerViewModel::toggleFavorite,
                 )
             }
             val quoteCurrency by tickerController.quoteCurrency.collectAsStateWithLifecycle()

@@ -18,6 +18,7 @@ class ControllersTest {
     fun tickersController_keepsStateAndSortCallback() {
         var receivedSortState: SortState? = null
         var refreshCount = 0
+        var active = false
         val state = MutableStateFlow<TickersState>(TickersState.Initial)
         val quoteCurrency = MutableStateFlow(QuoteCurrency.BRL)
 
@@ -25,15 +26,18 @@ class ControllersTest {
             state = state,
             quoteCurrency = quoteCurrency,
             refreshIfNeeded = { refreshCount++ },
-            sortBy = { receivedSortState = it }
+            sortBy = { receivedSortState = it },
+            setActive = { active = it },
         )
 
+        controller.setActive(true)
         controller.refreshIfNeeded()
         controller.sortBy(SortState(SortType.NAME, SortOrder.DESCENDING))
 
         assertSame(state, controller.state)
         assertSame(quoteCurrency, controller.quoteCurrency)
         assertEquals(1, refreshCount)
+        assertEquals(true, active)
         assertEquals(SortState(SortType.NAME, SortOrder.DESCENDING), receivedSortState)
     }
 

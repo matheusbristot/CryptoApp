@@ -1,6 +1,7 @@
 package dev.bristot.cryptoapp.feature.tickers.presentation.tickers
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.runtime.getValue
@@ -17,7 +18,7 @@ import dev.bristot.cryptoapp.feature.market_review.api.MarketOverviewRendererIds
 import dev.bristot.cryptoapp.feature.tickers.navigation.RecentTickersDestination
 import dev.bristot.cryptoapp.feature.tickers.navigation.TickerDetailDestination
 import dev.bristot.cryptoapp.feature.tickers.navigation.TickersDestination
-import dev.bristot.cryptoapp.navigation.NavigationData
+import dev.bristot.cryptoapp.navigation.LocalNavigationData
 import dev.bristot.cryptoapp.navigation.LocalNavigationHostActive
 import dev.bristot.cryptoapp.navigation.RootNavigationDestination
 import dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersController
@@ -28,7 +29,6 @@ import dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonManager
 import dev.bristot.cryptoapp.ui.sort.SortController
 import dev.bristot.cryptoapp.ui.sort.SortViewModel
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
-import javax.inject.Provider
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -37,7 +37,6 @@ object TickersModule {
     @IntoSet
     @Provides
     fun provideRootNavigationDestination(
-        navigationDataProvider: Provider<NavigationData>,
         marketOverviewHeaderRegistry: MarketOverviewHeaderRegistry,
         valueFormatter: CryptoValueFormatter,
         settingsRepository: SettingsRepository,
@@ -49,7 +48,7 @@ object TickersModule {
             order = 0,
             entryProviderInstaller = {
                 entry<TickersDestination> {
-                    val navigationData = navigationDataProvider.get()
+                    val navigationData = LocalNavigationData.current
                     val isActive = LocalNavigationHostActive.current
                     val tickersViewModel = hiltViewModel<TickersViewModel>()
                     val floatingButtonManager = hiltViewModel<FloatingButtonManager>()
@@ -63,7 +62,15 @@ object TickersModule {
                             quoteCurrency = tickersViewModel.quoteCurrency,
                             refreshIfNeeded = tickersViewModel::refreshIfNeeded,
                             sortBy = tickersViewModel::sortBy,
+                            favoritesState = tickersViewModel.favoritesState,
+                            selectedSection = tickersViewModel.selectedSection,
+                            selectSection = tickersViewModel::selectSection,
+                            setActive = tickersViewModel::setActive,
                         )
+                    }
+                    DisposableEffect(isActive, tickersController) {
+                        tickersController.setActive(isActive)
+                        onDispose { tickersController.setActive(false) }
                     }
                     val quoteCurrency by tickersController.quoteCurrency.collectAsStateWithLifecycle()
                     LaunchedEffect(isActive, tickersController) {
@@ -112,6 +119,14 @@ object TickersModule {
                                     id = ticker.id,
                                     name = ticker.name,
                                 )
+                            )
+                        },
+                        onSelectFavorite = { id, name ->
+                            navigationData.forward(
+                                TickerDetailDestination(
+                                    id = id,
+                                    name = name,
+                                ),
                             )
                         },
                         valueFormatter = valueFormatter,

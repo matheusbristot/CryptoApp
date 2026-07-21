@@ -40,10 +40,11 @@ class TickerTileTest {
             }
         }
 
-        composeRule.onNodeWithTag("ticker_tile_btc").assertIsDisplayed().assertHasClickAction().performClick()
-        composeRule.onNodeWithTag("ticker_price").assertIsDisplayed()
+        composeRule.onNodeWithTag("ticker_tile_btc").assertIsDisplayed().assertHasClickAction()
+        composeRule.onNodeWithTag("ticker_price", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithText("+0.60%").assertIsDisplayed()
         composeRule.onNodeWithText("24h").assertIsDisplayed()
+        composeRule.onNodeWithTag("ticker_tile_btc").performClick()
 
         assertEquals("btc", clickedId)
         assertEquals("Bitcoin", clickedName)

@@ -35,6 +35,7 @@ fun CoinList(
     lazyColumnRememberState: LazyListState,
     coins: List<Coin>,
     valueFormatter: CryptoValueFormatter,
+    onCoinClick: (Coin) -> Unit = {},
 ) {
     LazyColumn(
         state = lazyColumnRememberState,
@@ -46,7 +47,11 @@ fun CoinList(
             Spacer(Modifier.height(24.dp))
         }
         itemsIndexed(items = coins, key = { _, coin -> coin.id }) { index, coin ->
-            CoinListTile(coin = coin, valueFormatter = valueFormatter)
+            CoinListTile(
+                coin = coin,
+                valueFormatter = valueFormatter,
+                onClick = { onCoinClick(coin) },
+            )
             if (index < coins.lastIndex) Spacer(Modifier.height(12.dp))
         }
     }

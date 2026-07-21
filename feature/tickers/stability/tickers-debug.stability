@@ -113,7 +113,21 @@ private fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.Content(i
     - marketOverviewQuoteData: STABLE (class with no mutable properties)
 
 @Composable
-public fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.MarketContainer(tickersController: dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersController, recentTickersController: dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersController, floatingButtonController: dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController, marketOverviewHeaderContent: @[Composable] androidx.compose.runtime.internal.ComposableFunction3<@[ParameterName(name = \, sortController: dev.bristot.cryptoapp.ui.sort.SortController, onOpenRecentTickers: kotlin.Function0<kotlin.Unit>, onSelectTicker: kotlin.Function1<dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker, kotlin.Unit>, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, quoteCurrency: dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency): kotlin.Unit
+private fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.FavoritesContent(innerPadding: androidx.compose.foundation.layout.PaddingValues, lazyColumnRememberState: androidx.compose.foundation.lazy.LazyListState, favoritesState: dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickerFavoritesState, isDarkMode: kotlin.Boolean, textColors: dev.bristot.cryptoapp.ui.theme.AppTextColors, onSelectFavorite: kotlin.Function2<@[ParameterName(name = \, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, quoteCurrency: dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency): kotlin.Unit
+  skippable: true
+  restartable: true
+  params:
+    - innerPadding: STABLE (marked @Stable or @Immutable)
+    - lazyColumnRememberState: STABLE (marked @Stable or @Immutable)
+    - favoritesState: STABLE (marked @Stable or @Immutable)
+    - isDarkMode: STABLE (primitive type)
+    - textColors: STABLE (marked @Stable or @Immutable)
+    - onSelectFavorite: STABLE (function type)
+    - valueFormatter: STABLE (marked @Stable or @Immutable)
+    - quoteCurrency: STABLE (class with no mutable properties)
+
+@Composable
+public fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.MarketContainer(tickersController: dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickersController, recentTickersController: dev.bristot.cryptoapp.feature.tickers.presentation.recents.RecentTickersController, floatingButtonController: dev.bristot.cryptoapp.ui.widgets.floating_button.FloatingButtonController, marketOverviewHeaderContent: @[Composable] androidx.compose.runtime.internal.ComposableFunction3<@[ParameterName(name = \, sortController: dev.bristot.cryptoapp.ui.sort.SortController, onOpenRecentTickers: kotlin.Function0<kotlin.Unit>, onSelectTicker: kotlin.Function1<dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker, kotlin.Unit>, onSelectFavorite: kotlin.Function2<@[ParameterName(name = \, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter, quoteCurrency: dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency): kotlin.Unit
   skippable: true
   restartable: true
   params:
@@ -124,6 +138,7 @@ public fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.MarketCont
     - sortController: STABLE (marked @Stable or @Immutable)
     - onOpenRecentTickers: STABLE (function type)
     - onSelectTicker: STABLE (function type)
+    - onSelectFavorite: STABLE (function type)
     - valueFormatter: STABLE (marked @Stable or @Immutable)
     - quoteCurrency: STABLE (class with no mutable properties)
 
@@ -140,6 +155,16 @@ public fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.TickerTile
     - valueFormatter: STABLE (marked @Stable or @Immutable)
     - onClick: STABLE (function type)
     - quoteCurrency: STABLE (class with no mutable properties)
+
+@Composable
+private fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.UnavailableFavoriteTile(item: dev.bristot.cryptoapp.feature.tickers.presentation.tickers.FavoriteTickerState, isDarkMode: kotlin.Boolean, textColors: dev.bristot.cryptoapp.ui.theme.AppTextColors, onClick: kotlin.Function0<kotlin.Unit>): kotlin.Unit
+  skippable: true
+  restartable: true
+  params:
+    - item: STABLE (marked @Stable or @Immutable)
+    - isDarkMode: STABLE (primitive type)
+    - textColors: STABLE (marked @Stable or @Immutable)
+    - onClick: STABLE (function type)
 
 @Composable
 public fun dev.bristot.cryptoapp.feature.tickers.presentation.tickers.VariableCoin(modifier: androidx.compose.ui.Modifier, change: kotlin.Double, changeColor: androidx.compose.ui.graphics.Color, isPositive: kotlin.Boolean, valueFormatter: dev.bristot.cryptoapp.format.CryptoValueFormatter): kotlin.Unit

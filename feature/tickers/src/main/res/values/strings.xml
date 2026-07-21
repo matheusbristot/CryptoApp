@@ -21,4 +21,10 @@
     <string name="recent_tickers_subtitle">Acessados recentemente</string>
     <string name="recent_tickers_count">%1$d ativos</string>
     <string name="recent_tickers_empty">Nenhum ticker recente</string>
+    <string name="market_tab">Mercado</string>
+    <string name="favorites_tab">Favoritos</string>
+    <string name="favorites_empty">Nenhum favorito disponível</string>
+    <string name="favorite_ticker_loading">Carregando dados do favorito</string>
+    <string name="add_ticker_favorite">Adicionar aos favoritos</string>
+    <string name="remove_ticker_favorite">Remover dos favoritos</string>
 </resources>

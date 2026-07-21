@@ -2,6 +2,11 @@ package dev.bristot.cryptoapp.feature.coins.data.sync
 
 import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
+import dev.bristot.cryptoapp.feature.settings.api.AppSettings
+import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
+import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
+import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
+import dev.bristot.cryptoapp.feature.tickers.domain.repository.TickersRepository
 import dev.bristot.cryptoapp.logger.CryptoLogger
 import dev.bristot.cryptoapp.sync.api.SyncResult
 import dev.bristot.cryptoapp.sync.api.SyncTargetRegistry
@@ -9,6 +14,7 @@ import dev.bristot.cryptoapp.sync.api.SyncTargetType
 import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -26,6 +32,28 @@ class CoinSyncTaskTest {
         assertEquals(SyncResult.Success, task.sync())
         assertEquals(emptyList<String>(), repository.requests)
         assertEquals(emptyList<Boolean>(), repository.forceValues)
+    }
+
+    @Test
+    fun sync_refreshesMetadataAndPricesWithRequestedSettingsQuotes() = runTest {
+        val repository = FakeCoinRepository()
+        val tickersRepository = FakeTickersRepository()
+        val task = task(
+            repository = repository,
+            ids = setOf("btc-bitcoin"),
+            tickersRepository = tickersRepository,
+            settings = AppSettings(
+                requestedQuoteCurrencies = setOf(QuoteCurrency.BRL, QuoteCurrency.USD),
+                selectedQuoteCurrency = QuoteCurrency.BRL,
+            ),
+        )
+
+        assertEquals(SyncResult.Success, task.sync())
+        assertEquals(listOf("btc-bitcoin"), repository.requests)
+        assertEquals(
+            listOf(Triple("btc-bitcoin", setOf(QuoteCurrency.BRL, QuoteCurrency.USD), false)),
+            tickersRepository.requests,
+        )
     }
 
     @Test
@@ -70,8 +98,15 @@ class CoinSyncTaskTest {
         assertEquals(listOf(false, false), repository.forceValues)
     }
 
-    private fun task(repository: FakeCoinRepository, ids: Set<String>) = CoinSyncTask(
+    private fun task(
+        repository: FakeCoinRepository,
+        ids: Set<String>,
+        tickersRepository: FakeTickersRepository = FakeTickersRepository(),
+        settings: AppSettings = AppSettings(),
+    ) = CoinSyncTask(
         repository = repository,
+        tickersRepository = tickersRepository,
+        settingsRepository = FakeSettingsRepository(settings),
         targetRegistry = object : SyncTargetRegistry {
             override suspend fun idsFor(type: SyncTargetType): Set<String> = ids
         },
@@ -93,6 +128,38 @@ class CoinSyncTaskTest {
             forceValues += force
             failures[coinId]?.let { throw it }
         }
+    }
+
+    private class FakeTickersRepository : TickersRepository {
+        val requests = mutableListOf<Triple<String, Set<QuoteCurrency>, Boolean>>()
+
+        override suspend fun getTickers(currencies: Set<QuoteCurrency>): Flow<List<Ticker>> =
+            flowOf(emptyList())
+
+        override suspend fun getTicker(
+            coinId: String,
+            currencies: Set<QuoteCurrency>,
+        ): Flow<Ticker> = flowOf()
+
+        override fun observeTicker(
+            coinId: String,
+            currencies: Set<QuoteCurrency>,
+        ): Flow<Ticker?> = flowOf(null)
+
+        override suspend fun refreshTicker(
+            coinId: String,
+            currencies: Set<QuoteCurrency>,
+            force: Boolean,
+        ) {
+            requests += Triple(coinId, currencies, force)
+        }
+    }
+
+    private class FakeSettingsRepository(initial: AppSettings) : SettingsRepository {
+        override val settings = MutableStateFlow(initial)
+
+        override suspend fun setQuoteEnabled(currency: QuoteCurrency, enabled: Boolean) = Unit
+        override suspend fun selectQuoteCurrency(currency: QuoteCurrency) = Unit
     }
 
     private data object NoOpLogger : CryptoLogger {

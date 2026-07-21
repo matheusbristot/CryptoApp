@@ -1,6 +1,8 @@
 package dev.bristot.cryptoapp.feature.coins.data.sync
 
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
+import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
+import dev.bristot.cryptoapp.feature.tickers.domain.repository.TickersRepository
 import dev.bristot.cryptoapp.logger.CryptoLogger
 import dev.bristot.cryptoapp.sync.api.FeatureSyncTask
 import dev.bristot.cryptoapp.sync.api.SyncResult
@@ -15,6 +17,8 @@ import retrofit2.HttpException
 
 class CoinSyncTask @Inject constructor(
     private val repository: CoinRepository,
+    private val tickersRepository: TickersRepository,
+    private val settingsRepository: SettingsRepository,
     private val targetRegistry: SyncTargetRegistry,
     private val logger: CryptoLogger,
 ) : FeatureSyncTask {
@@ -26,22 +30,40 @@ class CoinSyncTask @Inject constructor(
     override suspend fun sync(): SyncResult {
         var retryRequired = false
         var permanentFailure = false
+        val currencies = settingsRepository.settings.value.requestedQuoteCurrencies
         targetRegistry.idsFor(targetType).forEach { coinId ->
-            try {
-                repository.refreshCoin(coinId = coinId, force = false)
-            } catch (exception: CancellationException) {
-                throw exception
-            } catch (exception: IOException) {
-                retryRequired = true
-                logger.warning(message = "Coin sync failed for $coinId", throwable = exception)
-            } catch (exception: HttpException) {
-                if (exception.code() == 429 || exception.code() >= 500) {
+            listOf<suspend () -> Unit>(
+                { repository.refreshCoin(coinId = coinId, force = false) },
+                {
+                    tickersRepository.refreshTicker(
+                        coinId = coinId,
+                        currencies = currencies,
+                        force = false,
+                    )
+                },
+            ).forEach { refresh ->
+                try {
+                    refresh()
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (exception: IOException) {
                     retryRequired = true
+                    logger.warning(message = "Coin sync failed for $coinId", throwable = exception)
+                } catch (exception: HttpException) {
+                    if (exception.code() == 429 || exception.code() >= 500) {
+                        retryRequired = true
+                    }
+                    logger.warning(
+                        message = "Coin sync HTTP ${exception.code()} for $coinId",
+                        throwable = exception,
+                    )
+                } catch (exception: Exception) {
+                    permanentFailure = true
+                    logger.error(
+                        throwable = exception,
+                        message = "Coin sync failed permanently for $coinId",
+                    )
                 }
-                logger.warning(message = "Coin sync HTTP ${exception.code()} for $coinId", throwable = exception)
-            } catch (exception: Exception) {
-                permanentFailure = true
-                logger.error(throwable = exception, message = "Coin sync failed permanently for $coinId")
             }
         }
         return when {

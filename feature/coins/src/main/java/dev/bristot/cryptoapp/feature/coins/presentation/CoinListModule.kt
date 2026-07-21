@@ -11,7 +11,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.multibindings.IntoSet
 import dev.bristot.cryptoapp.feature.coins.navigation.CoinsDestination
+import dev.bristot.cryptoapp.feature.coins.navigation.CoinDetailDestination
 import dev.bristot.cryptoapp.navigation.LocalNavigationHostActive
+import dev.bristot.cryptoapp.navigation.LocalNavigationData
 import dev.bristot.cryptoapp.navigation.RootNavigationDestination
 import dev.bristot.cryptoapp.format.CryptoValueFormatter
 import dev.bristot.cryptoapp.feature.coins.presentation.viewmodel.CoinListViewModel
@@ -37,14 +39,19 @@ object CoinListModule {
             entryProviderInstaller = {
                 entry<CoinsDestination> {
                     val isActive = LocalNavigationHostActive.current
+                    val navigationData = LocalNavigationData.current
                     val coinListViewModel = hiltViewModel<CoinListViewModel>()
                     val sortViewModel = hiltViewModel<SortViewModel>()
                     val coinListController = remember(coinListViewModel) {
                         CoinListController(
                             state = coinListViewModel.state,
+                            favorites = coinListViewModel.favorites,
+                            selectedSection = coinListViewModel.selectedSection,
                             refreshIfNeeded = coinListViewModel::refreshIfNeeded,
+                            setActive = coinListViewModel::setActive,
                             handleToTop = coinListViewModel::handleToTop,
                             sortBy = coinListViewModel::sortBy,
+                            selectSection = coinListViewModel::selectSection,
                         )
                     }
                     val sortController = remember(sortViewModel) {
@@ -55,6 +62,7 @@ object CoinListModule {
                         )
                     }
                     LaunchedEffect(isActive, coinListController) {
+                        coinListController.setActive(isActive)
                         if (isActive) {
                             settingsRepository.settings.collect {
                                 coinListController.refreshIfNeeded()
@@ -65,6 +73,11 @@ object CoinListModule {
                         controller = coinListController,
                         sortController = sortController,
                         valueFormatter = valueFormatter,
+                        onCoinClick = { coin ->
+                            navigationData.forward(
+                                CoinDetailDestination(id = coin.id, name = coin.name),
+                            )
+                        },
                     )
                 }
             },

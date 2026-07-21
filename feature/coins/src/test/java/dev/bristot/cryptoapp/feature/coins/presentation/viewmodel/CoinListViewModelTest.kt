@@ -5,6 +5,9 @@ import dev.bristot.cryptoapp.feature.coins.domain.entity.Coin
 import dev.bristot.cryptoapp.feature.coins.domain.repository.CoinRepository
 import dev.bristot.cryptoapp.feature.coins.domain.usecase.GetQuotedCoinsUseCase
 import dev.bristot.cryptoapp.feature.coins.presentation.CoinSortTemplate
+import dev.bristot.cryptoapp.feature.favorites.api.FavoriteRef
+import dev.bristot.cryptoapp.feature.favorites.api.FavoriteType
+import dev.bristot.cryptoapp.feature.favorites.api.FavoritesRepository
 import dev.bristot.cryptoapp.feature.settings.api.AppSettings
 import dev.bristot.cryptoapp.feature.settings.api.QuoteCurrency
 import dev.bristot.cryptoapp.feature.settings.api.SettingsRepository
@@ -26,6 +29,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -46,15 +50,7 @@ class CoinListViewModelTest {
                 coin(id = "btc", name = "Bitcoin", symbol = "BTC", rank = 1),
             )
         )
-        val viewModel = CoinListViewModel(
-            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            getQuotedCoins = quotedCoinsUseCase(
-                coinRepository = repository,
-                tickersRepository = FakeTickersRepository(),
-            ),
-            sortTemplate = CoinSortTemplate(),
-            settingsRepository = FakeSettingsRepository(),
-        )
+        val viewModel = createViewModel(coinRepository = repository)
 
         viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
@@ -126,15 +122,7 @@ class CoinListViewModelTest {
         val repository = FakeCoinRepository(
             error = IllegalStateException("boom")
         )
-        val viewModel = CoinListViewModel(
-            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            getQuotedCoins = quotedCoinsUseCase(
-                coinRepository = repository,
-                tickersRepository = FakeTickersRepository(),
-            ),
-            sortTemplate = CoinSortTemplate(),
-            settingsRepository = FakeSettingsRepository(),
-        )
+        val viewModel = createViewModel(coinRepository = repository)
 
         viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
@@ -154,15 +142,7 @@ class CoinListViewModelTest {
         )
     ): CoinListViewModel {
         val repository = FakeCoinRepository(coins = coins)
-        val viewModel = CoinListViewModel(
-            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            getQuotedCoins = quotedCoinsUseCase(
-                coinRepository = repository,
-                tickersRepository = FakeTickersRepository(),
-            ),
-            sortTemplate = CoinSortTemplate(),
-            settingsRepository = FakeSettingsRepository(),
-        )
+        val viewModel = createViewModel(coinRepository = repository)
         viewModel.refreshIfNeeded()
         mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
         return viewModel
@@ -177,15 +157,11 @@ class CoinListViewModelTest {
                 QuoteCurrency.USD to 65_000.0,
             )
         )
-        val viewModel = CoinListViewModel(
-            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            getQuotedCoins = quotedCoinsUseCase(
-                coinRepository = FakeCoinRepository(
-                    coins = listOf(coin("btc", "Bitcoin", "BTC", 1))
-                ),
-                tickersRepository = tickersRepository,
+        val viewModel = createViewModel(
+            coinRepository = FakeCoinRepository(
+                coins = listOf(coin("btc", "Bitcoin", "BTC", 1)),
             ),
-            sortTemplate = CoinSortTemplate(),
+            tickersRepository = tickersRepository,
             settingsRepository = settingsRepository,
         )
 
@@ -222,16 +198,11 @@ class CoinListViewModelTest {
     @Test
     fun reopeningWithoutQuoteChange_reusesCurrentResult() = runTest {
         val tickersRepository = FakeTickersRepository()
-        val viewModel = CoinListViewModel(
-            dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
-            getQuotedCoins = quotedCoinsUseCase(
-                coinRepository = FakeCoinRepository(
-                    coins = listOf(coin("btc", "Bitcoin", "BTC", 1))
-                ),
-                tickersRepository = tickersRepository,
+        val viewModel = createViewModel(
+            coinRepository = FakeCoinRepository(
+                coins = listOf(coin("btc", "Bitcoin", "BTC", 1)),
             ),
-            sortTemplate = CoinSortTemplate(),
-            settingsRepository = FakeSettingsRepository(),
+            tickersRepository = tickersRepository,
         )
 
         viewModel.refreshIfNeeded()
@@ -245,6 +216,134 @@ class CoinListViewModelTest {
             viewModel.clearForTest()
         }
     }
+
+    @Test
+    fun persistedFavorites_areBaselineAndKeepAllSelected() = runTest {
+        val favoritesRepository = MutableFavoritesRepository(
+            listOf(favorite("btc")),
+        )
+        val viewModel = createViewModel(
+            coinRepository = FakeCoinRepository(
+                coins = listOf(coin("btc", "Bitcoin", "BTC", 1)),
+            ),
+            tickersRepository = FakeTickersRepository(
+                tickerPrices = mapOf(QuoteCurrency.BRL to 350_000.0),
+            ),
+            favoritesRepository = favoritesRepository,
+        )
+
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            assertEquals(listOf("btc"), viewModel.favorites.value.map { it.id })
+            assertEquals(CoinListSection.ALL, viewModel.selectedSection.value)
+            assertEquals(350_000.0, viewModel.favorites.value.single().coin?.quote?.price)
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
+    fun addingFavorite_selectsFavoritesAndRemovingLastReturnsToAll() = runTest {
+        val favoritesRepository = MutableFavoritesRepository()
+        val viewModel = createViewModel(
+            coinRepository = FakeCoinRepository(
+                coins = listOf(coin("btc", "Bitcoin", "BTC", 1)),
+            ),
+            favoritesRepository = favoritesRepository,
+        )
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            favoritesRepository.replace(listOf(favorite("btc")))
+            mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(CoinListSection.FAVORITES, viewModel.selectedSection.value)
+            assertEquals("btc", viewModel.favorites.value.single().id)
+
+            favoritesRepository.replace(emptyList())
+            mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(CoinListSection.ALL, viewModel.selectedSection.value)
+            assertTrue(viewModel.favorites.value.isEmpty())
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
+    fun favoriteCacheUpdates_areReflectedWithoutReopening() = runTest {
+        val coinRepository = FakeCoinRepository(
+            coins = listOf(coin("btc", "Bitcoin", "BTC", 1)),
+        )
+        val tickersRepository = FakeTickersRepository(
+            tickerPrices = mapOf(QuoteCurrency.BRL to 350_000.0),
+        )
+        val viewModel = createViewModel(
+            coinRepository = coinRepository,
+            tickersRepository = tickersRepository,
+            favoritesRepository = MutableFavoritesRepository(listOf(favorite("btc"))),
+        )
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            tickersRepository.emitPrice("btc", QuoteCurrency.BRL, 360_000.0)
+            mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(360_000.0, viewModel.favorites.value.single().coin?.quote?.price)
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
+    fun favoritesEmittedAfterActivation_areRefreshedWithCachePolicy() = runTest {
+        val coinRepository = FakeCoinRepository()
+        val tickersRepository = FakeTickersRepository()
+        val favoritesRepository = MutableFavoritesRepository()
+        val viewModel = createViewModel(
+            coinRepository = coinRepository,
+            tickersRepository = tickersRepository,
+            favoritesRepository = favoritesRepository,
+        )
+
+        viewModel.setActive(true)
+        viewModel.refreshIfNeeded()
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        favoritesRepository.replace(listOf(favorite("btc")))
+        mainDispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        try {
+            assertEquals(listOf("btc" to false), coinRepository.refreshRequests)
+            assertEquals(
+                listOf(Triple("btc", setOf(QuoteCurrency.BRL), false)),
+                tickersRepository.refreshRequests,
+            )
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    private fun createViewModel(
+        coinRepository: FakeCoinRepository = FakeCoinRepository(),
+        tickersRepository: FakeTickersRepository = FakeTickersRepository(),
+        settingsRepository: FakeSettingsRepository = FakeSettingsRepository(),
+        favoritesRepository: FavoritesRepository = MutableFavoritesRepository(),
+    ) = CoinListViewModel(
+        dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
+        getQuotedCoins = quotedCoinsUseCase(coinRepository, tickersRepository),
+        sortTemplate = CoinSortTemplate(),
+        settingsRepository = settingsRepository,
+        favoritesRepository = favoritesRepository,
+        coinRepository = coinRepository,
+        tickersRepository = tickersRepository,
+    )
+
+    private fun favorite(id: String) = FavoriteRef(
+        type = FavoriteType.COIN,
+        itemId = id,
+        createdAtEpochMillis = 1L,
+    )
 
     private fun coin(
         id: String,
@@ -274,13 +373,20 @@ class CoinListViewModelTest {
         private val coins: List<Coin> = emptyList(),
         private val error: Throwable? = null,
     ) : CoinRepository {
+        private val observed = coins.associate { coin -> coin.id to MutableStateFlow<Coin?>(coin) }
+            .toMutableMap()
+        val refreshRequests = mutableListOf<Pair<String, Boolean>>()
+
         override suspend fun getCoins(): Flow<List<Coin>> = error?.let { throwable ->
             flow { throw throwable }
         } ?: flowOf(coins)
 
-        override fun observeCoin(coinId: String): Flow<Coin?> = flowOf(null)
+        override fun observeCoin(coinId: String): Flow<Coin?> =
+            observed.getOrPut(coinId) { MutableStateFlow(null) }
 
-        override suspend fun refreshCoin(coinId: String, force: Boolean) = Unit
+        override suspend fun refreshCoin(coinId: String, force: Boolean) {
+            refreshRequests += coinId to force
+        }
     }
 
     private class FakeSettingsRepository : SettingsRepository {
@@ -299,6 +405,8 @@ class CoinListViewModelTest {
         private val tickerPrices: Map<QuoteCurrency, Double> = emptyMap(),
     ) : TickersRepository {
         val requests = mutableListOf<Set<QuoteCurrency>>()
+        val refreshRequests = mutableListOf<Triple<String, Set<QuoteCurrency>, Boolean>>()
+        private val observed = mutableMapOf<String, MutableStateFlow<Ticker?>>()
 
         override suspend fun getTickers(currencies: Set<QuoteCurrency>): Flow<List<Ticker>> {
             requests += currencies
@@ -328,13 +436,33 @@ class CoinListViewModelTest {
         override fun observeTicker(
             coinId: String,
             currencies: Set<QuoteCurrency>,
-        ): Flow<Ticker?> = flowOf(null)
+        ): Flow<Ticker?> = observed.getOrPut(coinId) {
+            MutableStateFlow(ticker(coinId, tickerPrices))
+        }
 
         override suspend fun refreshTicker(
             coinId: String,
             currencies: Set<QuoteCurrency>,
             force: Boolean,
-        ) = Unit
+        ) {
+            refreshRequests += Triple(coinId, currencies, force)
+        }
+
+        fun emitPrice(coinId: String, currency: QuoteCurrency, price: Double) {
+            observed.getOrPut(coinId) { MutableStateFlow(null) }.value =
+                ticker(coinId, mapOf(currency to price))
+        }
+
+        private fun ticker(
+            id: String,
+            prices: Map<QuoteCurrency, Double>,
+        ): Ticker? = if (prices.isEmpty()) null else Ticker(
+            id = id,
+            name = id,
+            symbol = id.uppercase(),
+            rank = 1,
+            prices = prices.mapValues { (_, price) -> tickerCurrency(price) },
+        )
 
         private fun tickerCurrency(price: Double) = Currency(
             price = price,
@@ -354,6 +482,32 @@ class CoinListViewModelTest {
             ),
             allTimeHigh = AllTimeHigh(null, null, null),
         )
+    }
+
+    private class MutableFavoritesRepository(
+        initial: List<FavoriteRef> = emptyList(),
+    ) : FavoritesRepository {
+        private val favorites = MutableStateFlow(initial)
+
+        override fun observeFavorites(type: FavoriteType): Flow<List<FavoriteRef>> = favorites
+
+        override fun observeIsFavorite(type: FavoriteType, itemId: String): Flow<Boolean> =
+            favorites.map { refs -> refs.any { it.type == type && it.itemId == itemId } }
+
+        override suspend fun setFavorite(type: FavoriteType, itemId: String, isFavorite: Boolean) {
+            replace(
+                if (isFavorite) favorites.value + FavoriteRef(
+                    type = type,
+                    itemId = itemId,
+                    createdAtEpochMillis = 1L,
+                )
+                else favorites.value.filterNot { it.type == type && it.itemId == itemId },
+            )
+        }
+
+        fun replace(value: List<FavoriteRef>) {
+            favorites.value = value
+        }
     }
 
     private class TestDispatcherProvider(

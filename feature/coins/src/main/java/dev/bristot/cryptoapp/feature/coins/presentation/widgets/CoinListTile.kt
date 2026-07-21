@@ -26,10 +26,12 @@ fun CoinListTile(
     modifier: Modifier = Modifier,
     coin: Coin,
     valueFormatter: CryptoValueFormatter,
+    onClick: () -> Unit = {},
 ) {
     val dark = androidx.compose.foundation.isSystemInDarkTheme()
     Surface(
         modifier = modifier.fillMaxWidth().testTag("coin_tile_${coin.id}"),
+        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, if (dark) Color(0xFF293548) else Color(0xFFE2E8F0)),

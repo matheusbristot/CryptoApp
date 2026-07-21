@@ -2,8 +2,10 @@ package dev.bristot.cryptoapp.feature.tickers.presentation.components
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -78,7 +80,40 @@ class TickerContainerTest {
 
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag("ticker_tile_btc").assertIsDisplayed()
-        composeRule.onNodeWithText("Bitcoin").assertIsDisplayed()
+        composeRule.onNodeWithTag("ticker_details").assertIsDisplayed()
+        composeRule.onNodeWithTag("ticker_price").assertIsDisplayed()
+    }
+
+    @Test
+    fun tickerContainer_allowsFavoriteToggleWhileShowingError() {
+        var toggles = 0
+        val isFavorite = MutableStateFlow(false)
+        val controller = TickerController(
+            state = MutableStateFlow(TickerState.Error("Offline")),
+            quoteCurrency = MutableStateFlow(QuoteCurrency.BRL),
+            refreshIfNeeded = { },
+            isFavorite = isFavorite,
+            toggleFavorite = {
+                toggles++
+                isFavorite.value = !isFavorite.value
+            },
+        )
+        composeRule.setContent {
+            CryptoAppTheme(darkTheme = false, dynamicColor = false) {
+                TickerContainer(
+                    name = "Bitcoin",
+                    tickerController = controller,
+                    valueFormatter = valueFormatter(),
+                    onBackButtonClick = { },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Offline").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Adicionar aos favoritos").performClick()
+        composeRule.onNodeWithContentDescription("Remover dos favoritos").assertIsDisplayed().performClick()
+
+        assertEquals(2, toggles)
+        composeRule.onAllNodesWithContentDescription("Remover dos favoritos").assertCountEquals(0)
     }
 }
