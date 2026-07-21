@@ -64,7 +64,7 @@ fun FavoriteCoinList(
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(item.id, style = MaterialTheme.typography.titleMedium)
                             Text(
-                                "Atualizando dados do favorito",
+                                "Updating favorite data",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

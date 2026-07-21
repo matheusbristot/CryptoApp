@@ -175,6 +175,8 @@ class MarketContainerTest {
             )
         }
         composeRule.onNodeWithTag("tickers_tab_row").assertIsDisplayed()
+        composeRule.onNodeWithText("Market").assertIsDisplayed()
+        composeRule.onNodeWithText("Favorites").assertIsDisplayed()
         composeRule.onNodeWithTag("tickers_favorites_tab").performClick()
         composeRule.onNodeWithTag("ticker_favorites_list").assertIsDisplayed()
         composeRule.onAllNodesWithText("Market overview").assertCountEquals(0)
@@ -248,7 +250,7 @@ class MarketContainerTest {
         var selectedId: String? = null
         val unavailable = FavoriteTickerState(
             ref = FavoriteRef(FavoriteType.TICKER, "offline", 1L),
-            error = "Sem conexão",
+            error = "No connection",
         )
 
         composeRule.setContent {

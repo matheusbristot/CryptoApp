@@ -96,13 +96,13 @@ fun CoinListComponent(
                         Tab(
                             selected = selectedSection == CoinListSection.ALL,
                             onClick = { controller.selectSection(CoinListSection.ALL) },
-                            text = { Text("Todos") },
+                            text = { Text("All") },
                             modifier = Modifier.testTag("coin_tab_all"),
                         )
                         Tab(
                             selected = selectedSection == CoinListSection.FAVORITES,
                             onClick = { controller.selectSection(CoinListSection.FAVORITES) },
-                            text = { Text("Favoritos") },
+                            text = { Text("Favorites") },
                             modifier = Modifier.testTag("coin_tab_favorites"),
                         )
                     }

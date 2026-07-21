@@ -83,7 +83,7 @@ class CoinDetailViewModel @AssistedInject constructor(
                 mutableState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = errors.first().message ?: "Não foi possível atualizar este ativo",
+                        errorMessage = errors.first().message ?: "Unable to update this asset",
                     )
                 }
             }
@@ -134,7 +134,7 @@ class CoinDetailViewModel @AssistedInject constructor(
             }
                 .catch { error ->
                     mutableState.update {
-                        it.copy(isLoading = false, errorMessage = error.message ?: "Erro inesperado")
+                        it.copy(isLoading = false, errorMessage = error.message ?: "Unexpected error")
                     }
                 }
                 .collect { state -> mutableState.value = state }

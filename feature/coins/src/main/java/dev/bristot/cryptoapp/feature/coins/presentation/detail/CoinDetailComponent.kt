@@ -61,7 +61,7 @@ fun CoinDetailComponent(
                 navigationIcon = {
                     if (showBackButton) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                         }
                     }
                 },
@@ -77,9 +77,9 @@ fun CoinDetailComponent(
                                 Icons.Outlined.FavoriteBorder
                             },
                             contentDescription = if (state.isFavorite) {
-                                "Remover dos favoritos"
+                                "Remove from favorites"
                             } else {
-                                "Adicionar aos favoritos"
+                                "Add to favorites"
                             },
                             tint = if (state.isFavorite) {
                                 MaterialTheme.colorScheme.primary
@@ -111,7 +111,7 @@ fun CoinDetailComponent(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    state.errorMessage ?: "Dados indisponíveis",
+                    state.errorMessage ?: "Data unavailable",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(24.dp),
                 )
@@ -145,13 +145,13 @@ private fun CoinDetails(
                         "${coin.symbol.uppercase()} · #${coin.rank}",
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
-                    Text("Preço", style = MaterialTheme.typography.labelLarge)
+                    Text("Price", style = MaterialTheme.typography.labelLarge)
                     Text(
                         coin.quote?.let { quote ->
                             quote.price?.let { price ->
                                 valueFormatter.currency(price, quote.currency.name)
                             }
-                        } ?: "Preço não disponível",
+                        } ?: "Price unavailable",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.testTag("coin_detail_price"),
@@ -174,10 +174,10 @@ private fun CoinDetails(
                 }
             }
         }
-        item { DetailMetric("Identificador", coin.id) }
-        item { DetailMetric("Tipo", coin.type) }
-        item { DetailMetric("Status", if (coin.isActive) "Ativo" else "Inativo") }
-        item { DetailMetric("Novo ativo", if (coin.isNew) "Sim" else "Não") }
+        item { DetailMetric("Identifier", coin.id) }
+        item { DetailMetric("Type", coin.type) }
+        item { DetailMetric("Status", if (coin.isActive) "Active" else "Inactive") }
+        item { DetailMetric("New asset", if (coin.isNew) "Yes" else "No") }
     }
 }
 

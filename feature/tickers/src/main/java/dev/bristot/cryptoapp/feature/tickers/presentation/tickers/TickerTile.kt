@@ -110,7 +110,7 @@ fun TickerTile(
                 verticalAlignment = Alignment.Bottom,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Preço", color = secondaryTextColor, style = MaterialTheme.typography.labelSmall)
+                    Text("Price", color = secondaryTextColor, style = MaterialTheme.typography.labelSmall)
                     Text(
                         valueFormatter.currency(quote.price, quoteCurrency.name),
                         color = textColor,

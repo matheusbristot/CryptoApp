@@ -97,6 +97,8 @@ class ComposeComponentsTest {
         }
         composeRule.onNodeWithTag("coin_tab_all").assertIsDisplayed()
         composeRule.onNodeWithTag("coin_tab_favorites").assertIsDisplayed()
+        composeRule.onNodeWithText("All").assertIsDisplayed()
+        composeRule.onNodeWithText("Favorites").assertIsDisplayed()
         composeRule.runOnIdle { favorites.value = emptyList() }
         composeRule.onAllNodesWithTag("coin_tab_favorites").assertCountEquals(0)
     }

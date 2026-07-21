@@ -18,13 +18,13 @@
     <string name="ticker_quote_unavailable">Quote %1$s is not available for this ticker</string>
     <string name="ticker_updated">Updated %1$s</string>
     <string name="recent_tickers_title">Recents</string>
-    <string name="recent_tickers_subtitle">Acessados recentemente</string>
-    <string name="recent_tickers_count">%1$d ativos</string>
-    <string name="recent_tickers_empty">Nenhum ticker recente</string>
-    <string name="market_tab">Mercado</string>
-    <string name="favorites_tab">Favoritos</string>
-    <string name="favorites_empty">Nenhum favorito disponível</string>
-    <string name="favorite_ticker_loading">Carregando dados do favorito</string>
-    <string name="add_ticker_favorite">Adicionar aos favoritos</string>
-    <string name="remove_ticker_favorite">Remover dos favoritos</string>
+    <string name="recent_tickers_subtitle">Recently accessed</string>
+    <string name="recent_tickers_count">%1$d assets</string>
+    <string name="recent_tickers_empty">No recent tickers</string>
+    <string name="market_tab">Market</string>
+    <string name="favorites_tab">Favorites</string>
+    <string name="favorites_empty">No favorites available</string>
+    <string name="favorite_ticker_loading">Loading favorite data</string>
+    <string name="add_ticker_favorite">Add to favorites</string>
+    <string name="remove_ticker_favorite">Remove from favorites</string>
 </resources>

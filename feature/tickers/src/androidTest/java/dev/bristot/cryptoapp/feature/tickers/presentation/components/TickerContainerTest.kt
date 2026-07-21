@@ -110,10 +110,10 @@ class TickerContainerTest {
         }
 
         composeRule.onNodeWithText("Offline").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Adicionar aos favoritos").performClick()
-        composeRule.onNodeWithContentDescription("Remover dos favoritos").assertIsDisplayed().performClick()
+        composeRule.onNodeWithContentDescription("Add to favorites").performClick()
+        composeRule.onNodeWithContentDescription("Remove from favorites").assertIsDisplayed().performClick()
 
         assertEquals(2, toggles)
-        composeRule.onAllNodesWithContentDescription("Remover dos favoritos").assertCountEquals(0)
+        composeRule.onAllNodesWithContentDescription("Remove from favorites").assertCountEquals(0)
     }
 }
