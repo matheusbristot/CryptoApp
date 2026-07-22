@@ -2,15 +2,8 @@ package dev.bristot.cryptoapp.feature.tickers.presentation.components
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
+import br.com.gabrielbrasileiro.combot.rule.createCombotRule
 import dev.bristot.cryptoapp.feature.tickers.domain.entity.Ticker
 import dev.bristot.cryptoapp.feature.favorites.api.FavoriteRef
 import dev.bristot.cryptoapp.feature.favorites.api.FavoriteType
@@ -32,8 +25,15 @@ import org.junit.Test
 
 class MarketContainerTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule(order = 1)
+    val combotRule = createCombotRule(
+        rule = composeRule,
+        action = ::MarketContainerCombotAction,
+        assert = ::MarketContainerCombotAssert,
+    )
 
     @Test
     fun marketContainer_showsRecentSectionAndFiltersOnlyDisplayedRecentTickers() {
@@ -84,14 +84,14 @@ class MarketContainerTest {
             }
         }
 
-        composeRule.onNodeWithTag("recent_tickers_section").assertIsDisplayed()
-        composeRule.onAllNodesWithTag("ticker_tile_btc").assertCountEquals(1)
-        composeRule.onAllNodesWithTag("ticker_tile_eth").assertCountEquals(1)
-        composeRule.onAllNodesWithTag("ticker_tile_sol").assertCountEquals(1)
-        composeRule.onAllNodesWithTag("ticker_tile_ada").assertCountEquals(1)
-
-        composeRule.onNodeWithTag("recent_tickers_title").assertHasClickAction().performClick()
-        composeRule.onNodeWithTag("ticker_tile_btc").performClick()
+        with(combotRule.arrangement) {
+            assert {
+                recentTickersAreDisplayed()
+            } action {
+                openRecentTickers()
+                selectBitcoinTicker()
+            }
+        }
 
         assertEquals(true, openRecentsClicked)
         assertEquals(bitcoin, selectedTicker)
@@ -127,8 +127,9 @@ class MarketContainerTest {
             }
         }
 
-        composeRule.onAllNodesWithTag("recent_tickers_section").assertCountEquals(0)
-        composeRule.onNodeWithTag("ticker_tile_btc").assertIsDisplayed()
+        with(combotRule.arrangement) {
+            assert { recentSectionIsHiddenAndBitcoinIsDisplayed() }
+        }
     }
 
     @Test
@@ -163,7 +164,9 @@ class MarketContainerTest {
             }
         }
 
-        composeRule.onAllNodesWithTag("tickers_tab_row").assertCountEquals(0)
+        with(combotRule.arrangement) {
+            assert { favoritesTabsDoNotExist() }
+        }
         composeRule.runOnIdle {
             favoritesState.value = TickerFavoritesState(
                 items = listOf(
@@ -174,19 +177,23 @@ class MarketContainerTest {
                 ),
             )
         }
-        composeRule.onNodeWithTag("tickers_tab_row").assertIsDisplayed()
-        composeRule.onNodeWithText("Market").assertIsDisplayed()
-        composeRule.onNodeWithText("Favorites").assertIsDisplayed()
-        composeRule.onNodeWithTag("tickers_favorites_tab").performClick()
-        composeRule.onNodeWithTag("ticker_favorites_list").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Market overview").assertCountEquals(0)
+        with(combotRule.arrangement) {
+            assert {
+                favoritesTabsAreDisplayed()
+            } action {
+                selectFavoritesTab()
+            } assert {
+                favoritesReplaceMarketContent()
+            }
+        }
 
         composeRule.runOnIdle {
             selectedSection.value = TickersSection.MARKET
             favoritesState.value = TickerFavoritesState()
         }
-        composeRule.onAllNodesWithTag("tickers_tab_row").assertCountEquals(0)
-        composeRule.onNodeWithText("Market overview").assertIsDisplayed()
+        with(combotRule.arrangement) {
+            assert { favoritesTabsAreHiddenAndMarketIsDisplayed() }
+        }
     }
 
     @Test
@@ -234,13 +241,13 @@ class MarketContainerTest {
             }
         }
 
-        composeRule.onNodeWithTag("ticker_tile_btc").assertIsDisplayed()
-        composeRule.onNodeWithTag("ticker_favorite_unavailable_missing").assertIsDisplayed()
-        composeRule.onNodeWithTag(
-            testTag = "ticker_favorite_loading_missing",
-            useUnmergedTree = true,
-        ).assertIsDisplayed()
-        composeRule.onNodeWithTag("ticker_favorite_unavailable_missing").performClick()
+        with(combotRule.arrangement) {
+            assert {
+                loadedAndUnavailableFavoritesAreDisplayed()
+            } action {
+                selectUnavailableFavorite("missing")
+            }
+        }
 
         assertEquals("missing" to "missing", selectedFavorite)
     }
@@ -279,11 +286,13 @@ class MarketContainerTest {
             }
         }
 
-        composeRule.onNodeWithTag(
-            testTag = "ticker_favorite_error_offline",
-            useUnmergedTree = true,
-        ).assertIsDisplayed()
-        composeRule.onNodeWithTag("ticker_favorite_unavailable_offline").performClick()
+        with(combotRule.arrangement) {
+            assert {
+                erroredFavoriteIsDisplayed("offline")
+            } action {
+                selectUnavailableFavorite("offline")
+            }
+        }
         assertEquals("offline", selectedId)
     }
 }

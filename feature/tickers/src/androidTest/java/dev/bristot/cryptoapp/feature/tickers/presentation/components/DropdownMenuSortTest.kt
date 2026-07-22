@@ -1,10 +1,8 @@
 package dev.bristot.cryptoapp.feature.tickers.presentation.components
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
+import br.com.gabrielbrasileiro.combot.rule.createCombotRule
 import dev.bristot.cryptoapp.ui.sort.SortDropdownMenu
 import dev.bristot.cryptoapp.ui.sort.SortOrder
 import dev.bristot.cryptoapp.ui.sort.SortType
@@ -14,8 +12,15 @@ import org.junit.Test
 
 class DropdownMenuSortTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule(order = 1)
+    val combotRule = createCombotRule(
+        rule = composeRule,
+        action = ::DropdownMenuSortCombotAction,
+        assert = ::DropdownMenuSortCombotAssert,
+    )
 
     @Test
     fun dropdownMenuSort_invokesCallbacksForTypeAndOrder() {
@@ -31,8 +36,13 @@ class DropdownMenuSortTest {
             )
         }
 
-        composeRule.onNodeWithTag("sort_name").assertIsDisplayed().performClick()
-        composeRule.onNodeWithTag("sort_desc").assertIsDisplayed().performClick()
+        with(combotRule.arrangement) {
+            assert {
+                sortOptionsAreDisplayed()
+            } action {
+                selectNameDescending()
+            }
+        }
 
         assertEquals(SortType.NAME, receivedType)
         assertEquals(SortOrder.DESCENDING, receivedOrder)

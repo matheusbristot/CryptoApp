@@ -2,20 +2,22 @@ package dev.bristot.cryptoapp.feature.market_review.presentation.market_review
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
+import br.com.gabrielbrasileiro.combot.rule.createCombotRule
 import dev.bristot.cryptoapp.ui.theme.CryptoAppTheme
 import org.junit.Rule
 import org.junit.Test
 
 class MarketReviewComponentTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule(order = 1)
+    val combotRule = createCombotRule(
+        rule = composeRule,
+        assert = ::MarketReviewComponentCombotAssert,
+    )
 
     @Test
     fun marketReviewComponent_displaysMarketStats() {
@@ -44,21 +46,9 @@ class MarketReviewComponentTest {
             }
         }
 
-        composeRule.onNodeWithTag("market_review_component").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_review_header").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_review_live_badge").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_review_stats").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_stat_total_market_cap").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_stat_24h_volume").assertIsDisplayed()
-        composeRule.onNodeWithText("Global Market").assertIsDisplayed()
-        composeRule.onNodeWithText("Live").assertIsDisplayed()
-        composeRule.onNodeWithText("\$1,5M").assertIsDisplayed()
-        composeRule.onNodeWithText("\$250000").assertIsDisplayed()
-        composeRule.onNodeWithText("Market overview · BRL").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Positive 24-hour change")
-            .assertContentDescriptionEquals("Positive 24-hour change")
-        composeRule.onNodeWithContentDescription("Negative 24-hour change")
-            .assertContentDescriptionEquals("Negative 24-hour change")
+        with(combotRule.arrangement) {
+            assert { marketStatsAreDisplayed() }
+        }
     }
 
     @Test
@@ -74,9 +64,9 @@ class MarketReviewComponentTest {
             }
         }
 
-        composeRule.onNodeWithTag("market_review_component").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_review_header").assertIsDisplayed()
-        composeRule.onNodeWithTag("market_review_stats").assertDoesNotExist()
+        with(combotRule.arrangement) {
+            assert { headerIsDisplayedWithoutStats() }
+        }
     }
 
     @Test
@@ -87,6 +77,8 @@ class MarketReviewComponentTest {
             }
         }
 
-        composeRule.onNodeWithTag("market_review_placeholder").assertIsDisplayed()
+        with(combotRule.arrangement) {
+            assert { placeholderIsDisplayed() }
+        }
     }
 }

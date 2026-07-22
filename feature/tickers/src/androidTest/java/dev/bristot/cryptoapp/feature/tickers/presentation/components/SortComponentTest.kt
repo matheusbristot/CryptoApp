@@ -1,12 +1,8 @@
 package dev.bristot.cryptoapp.feature.tickers.presentation.components
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.test.performClick
+import br.com.gabrielbrasileiro.combot.rule.createCombotRule
 import dev.bristot.cryptoapp.ui.sort.SortComponent
 import dev.bristot.cryptoapp.ui.sort.SortState
 import dev.bristot.cryptoapp.ui.sort.SortType
@@ -16,8 +12,15 @@ import org.junit.Test
 
 class SortComponentTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule(order = 1)
+    val combotRule = createCombotRule(
+        rule = composeRule,
+        action = ::SortComponentCombotAction,
+        assert = ::SortComponentCombotAssert,
+    )
 
     @Test
     fun selectingDifferentType_invokesCallbackScrollsAndClosesMenu() {
@@ -33,12 +36,16 @@ class SortComponentTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("Change sort").performClick()
-        composeRule.onNodeWithTag("sort_name").performClick()
+        with(combotRule.arrangement) {
+            action {
+                selectNameSort()
+            } assert {
+                sortMenuIsClosed()
+            }
+        }
 
         assertEquals(SortType.NAME, receivedType)
         assertEquals(1, scrollRequests)
-        composeRule.onAllNodesWithTag("dropdown_sort_menu").assertCountEquals(0)
     }
 
     @Test
@@ -55,8 +62,9 @@ class SortComponentTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("Change sort").performClick()
-        composeRule.onNodeWithTag("sort_rank").performClick()
+        with(combotRule.arrangement) {
+            action { selectRankSort() }
+        }
 
         assertEquals(0, callbackCount)
         assertEquals(0, scrollRequests)

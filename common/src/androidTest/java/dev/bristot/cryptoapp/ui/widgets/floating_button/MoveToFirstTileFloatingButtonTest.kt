@@ -2,19 +2,24 @@ package dev.bristot.cryptoapp.ui.widgets.floating_button
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
+import br.com.gabrielbrasileiro.combot.rule.createCombotRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
 class MoveToFirstTileFloatingButtonTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule(order = 1)
+    val combotRule = createCombotRule(
+        rule = composeRule,
+        action = ::MoveToFirstTileFloatingButtonCombotAction,
+        assert = ::MoveToFirstTileFloatingButtonCombotAssert,
+    )
 
     @Test
     fun moveToFirstTileFloatingButton_isClickable() {
@@ -29,9 +34,13 @@ class MoveToFirstTileFloatingButtonTest {
             }
         }
 
-        composeRule.onNodeWithTag("move_to_first_tile_button")
-            .assertHasClickAction()
-            .performClick()
+        with(combotRule.arrangement) {
+            assert {
+                buttonIsClickable()
+            } action {
+                clickButton()
+            }
+        }
 
         assertEquals(listOf("show_bottom_bar", "scroll_to_top"), events)
     }

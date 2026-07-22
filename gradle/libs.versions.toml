@@ -24,6 +24,7 @@ dataStore = "1.2.1"
 popcornGuineapig = "3.2.3"
 workManager = "2.11.2"
 room = "2.8.4"
+combot = "1.0.7"
 
 
 [libraries]
@@ -69,6 +70,7 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+combot = { group = "com.github.GabrielBrasileiro", name = "combot", version.ref = "combot" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

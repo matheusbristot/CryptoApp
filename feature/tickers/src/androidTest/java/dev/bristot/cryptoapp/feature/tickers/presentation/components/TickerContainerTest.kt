@@ -1,14 +1,8 @@
 package dev.bristot.cryptoapp.feature.tickers.presentation.components
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
+import br.com.gabrielbrasileiro.combot.rule.createCombotRule
 import dev.bristot.cryptoapp.feature.tickers.presentation.ticker.TickerContainer
 import dev.bristot.cryptoapp.feature.tickers.presentation.ticker.TickerController
 import dev.bristot.cryptoapp.feature.tickers.presentation.ticker.TickerState
@@ -21,8 +15,15 @@ import org.junit.Test
 
 class TickerContainerTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule(order = 1)
+    val combotRule = createCombotRule(
+        rule = composeRule,
+        action = ::TickerContainerCombotAction,
+        assert = ::TickerContainerCombotAssert,
+    )
 
     @Test
     fun tickerContainer_showsLoadingAndBackButton() {
@@ -45,9 +46,13 @@ class TickerContainerTest {
             }
         }
 
-        composeRule.onNodeWithText("Bitcoin").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Back").assertIsDisplayed().performClick()
-        composeRule.onNodeWithTag("ticker_loading").assertIsDisplayed()
+        with(combotRule.arrangement) {
+            assert {
+                loadingContentAndBackButtonAreDisplayed("Bitcoin")
+            } action {
+                clickBack()
+            }
+        }
 
         assertEquals(true, backClicked)
     }
@@ -71,8 +76,9 @@ class TickerContainerTest {
             }
         }
 
-        composeRule.onNodeWithText("Ethereum").assertIsDisplayed()
-        composeRule.onNodeWithText("An error occurred").assertIsDisplayed()
+        with(combotRule.arrangement) {
+            assert { errorIsDisplayed("Ethereum", "An error occurred") }
+        }
 
         composeRule.runOnIdle {
             loadingState.value = TickerState.Success(ticker = ticker())
@@ -80,8 +86,9 @@ class TickerContainerTest {
 
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag("ticker_details").assertIsDisplayed()
-        composeRule.onNodeWithTag("ticker_price").assertIsDisplayed()
+        with(combotRule.arrangement) {
+            assert { tickerDetailsAreDisplayed() }
+        }
     }
 
     @Test
@@ -109,11 +116,21 @@ class TickerContainerTest {
             }
         }
 
-        composeRule.onNodeWithText("Offline").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Add to favorites").performClick()
-        composeRule.onNodeWithContentDescription("Remove from favorites").assertIsDisplayed().performClick()
+        with(combotRule.arrangement) {
+            assert {
+                errorMessageIsDisplayed("Offline")
+            } action {
+                addToFavorites()
+            } assert {
+                removeFromFavoritesIsDisplayed()
+            } action {
+                removeFromFavorites()
+            }
+        }
 
         assertEquals(2, toggles)
-        composeRule.onAllNodesWithContentDescription("Remove from favorites").assertCountEquals(0)
+        with(combotRule.arrangement) {
+            assert { removeFromFavoritesDoesNotExist() }
+        }
     }
 }
